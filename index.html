@@ -103,6 +103,11 @@ body {
 .form-select:focus, .form-input:focus {
   border-color: var(--accent);
 }
+.datetime-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 6px;
+}
 .btn-submit {
   width: 100%;
   padding: 14px;
@@ -267,7 +272,11 @@ body {
       </div>
       <div class="form-group">
         <label class="form-label">日時</label>
-        <input class="form-input" type="datetime-local" id="stamp-datetime">
+        <div class="datetime-grid">
+          <select class="form-select" id="stamp-date"></select>
+          <select class="form-select" id="stamp-hour"></select>
+          <select class="form-select" id="stamp-min"></select>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">時給（円）</label>
@@ -417,12 +426,47 @@ function formatYen(n) {
   return n.toLocaleString() + '円';
 }
 
-// ── 初期化：datetime-localのデフォルト値 ───────────────
+// ── 初期化：日時プルダウン ─────────────────────────────
 function initForm() {
   const now = new Date();
-  document.getElementById('stamp-datetime').value = toLocalISO(now);
   document.getElementById('header-date').textContent =
     now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // 日付プルダウン：過去7日 + 今日 + 翌日
+  const dateSel = document.getElementById('stamp-date');
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  for (let i = -7; i <= 1; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const label = `${d.getMonth() + 1}/${d.getDate()}(${['日','月','火','水','木','金','土'][d.getDay()]})`;
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = label;
+    if (val === todayStr) opt.selected = true;
+    dateSel.appendChild(opt);
+  }
+
+  // 時プルダウン：0〜23
+  const hourSel = document.getElementById('stamp-hour');
+  for (let h = 0; h < 24; h++) {
+    const opt = document.createElement('option');
+    opt.value = String(h).padStart(2, '0');
+    opt.textContent = `${h}時`;
+    if (h === now.getHours()) opt.selected = true;
+    hourSel.appendChild(opt);
+  }
+
+  // 分プルダウン：00/15/30/45
+  const minSel = document.getElementById('stamp-min');
+  const nearest15 = Math.round(now.getMinutes() / 15) * 15;
+  const defaultMin = nearest15 >= 60 ? 0 : nearest15;
+  for (const m of [0, 15, 30, 45]) {
+    const opt = document.createElement('option');
+    opt.value = String(m).padStart(2, '0');
+    opt.textContent = `${String(m).padStart(2, '0')}分`;
+    if (m === defaultMin) opt.selected = true;
+    minSel.appendChild(opt);
+  }
 }
 
 // ── 月選択プルダウン初期化 ────────────────────────────
@@ -447,18 +491,15 @@ function initMonthFilter() {
 async function handleStamp() {
   const empName   = document.getElementById('emp-name').value;
   const stampType = document.getElementById('stamp-type').value;
-  const dtValue   = document.getElementById('stamp-datetime').value;
+  const dateStr   = document.getElementById('stamp-date').value;
+  const hourVal   = document.getElementById('stamp-hour').value;
+  const minVal    = document.getElementById('stamp-min').value;
   const hourlyRate = parseInt(document.getElementById('hourly-rate').value);
   const btn       = document.getElementById('btn-stamp');
 
-  if (!dtValue) {
-    showToast('日時を入力してください', true);
-    return;
-  }
-
+  const dtValue = `${dateStr}T${hourVal}:${minVal}`;
   const dt = new Date(dtValue);
-  const dateStr = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
-  const isoTime = toISOString(dtValue);
+  const isoTime = dt.toISOString();
   const pageName = `${empName}_${dateStr}`;
 
   btn.disabled = true;
