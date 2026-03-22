@@ -57,12 +57,50 @@ body {
 .header-right { text-align: right; }
 .header-date { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
 
+/* ── Back Button ── */
+.btn-back {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 13px; color: var(--text2); text-decoration: none;
+  margin-bottom: 1rem; padding: 6px 0; transition: color 0.15s;
+}
+.btn-back:hover { color: var(--accent); }
+
+/* ── Employee Select View ── */
+.select-label {
+  font-size: 15px; font-weight: 500; color: var(--text2);
+  text-align: center; margin-bottom: 1.25rem;
+}
+.emp-select-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.emp-select-btn {
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.5rem 1rem;
+  font-size: 18px; font-weight: 600; font-family: 'Noto Sans JP', sans-serif;
+  color: var(--text); cursor: pointer; transition: all 0.15s;
+  text-align: center; text-decoration: none; display: block;
+}
+.emp-select-btn:hover { background: var(--green-bg); border-color: var(--accent); color: var(--accent); }
+.emp-select-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.admin-link {
+  display: block; text-align: center; padding: 14px;
+  font-size: 14px; font-weight: 500; color: var(--text2);
+  text-decoration: none; border: 1px solid var(--border);
+  border-radius: var(--radius-lg); transition: all 0.15s;
+  background: var(--surface);
+}
+.admin-link:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+/* ── Employee Page Name ── */
+.emp-page-name {
+  font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 1.5rem;
+}
+
 /* ── Form Card ── */
 .form-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.25rem 1.5rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.25rem 1.25rem 1.5rem;
   margin-bottom: 1.75rem;
 }
 .form-title {
@@ -70,62 +108,33 @@ body {
   font-family: 'DM Mono', monospace; margin-bottom: 1rem;
 }
 .form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 1rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;
 }
 .form-group { display: flex; flex-direction: column; gap: 4px; }
 .form-group.full { grid-column: 1 / -1; }
-.form-label {
-  font-size: 11px; font-weight: 500; color: var(--text2);
-}
+.form-label { font-size: 11px; font-weight: 500; color: var(--text2); }
 .form-select, .form-input {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 14px;
+  width: 100%; padding: 10px 12px; font-size: 14px;
   font-family: 'Noto Sans JP', sans-serif;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--text);
-  outline: none;
-  transition: border 0.15s;
-  -webkit-appearance: none;
-  appearance: none;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text); outline: none;
+  transition: border 0.15s; -webkit-appearance: none; appearance: none;
 }
 .form-select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B6560' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 32px;
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
 }
-.form-select:focus, .form-input:focus {
-  border-color: var(--accent);
-}
-.datetime-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 6px;
-}
+.form-select:focus, .form-input:focus { border-color: var(--accent); }
+.datetime-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; }
 .btn-submit {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 600;
+  width: 100%; padding: 14px; font-size: 16px; font-weight: 600;
   font-family: 'Noto Sans JP', sans-serif;
-  background: var(--accent);
-  color: #FFFFFF;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: opacity 0.15s;
+  background: var(--accent); color: #FFFFFF; border: none;
+  border-radius: var(--radius); cursor: pointer; transition: opacity 0.15s;
 }
 .btn-submit:hover { opacity: 0.9; }
 .btn-submit:active { opacity: 0.8; }
-.btn-submit:disabled {
-  opacity: 0.5; cursor: not-allowed;
-}
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Section Heading ── */
 .section-heading {
@@ -135,24 +144,15 @@ body {
 }
 
 /* ── Filter Bar ── */
-.filter-bar {
-  display: flex; gap: 10px; margin-bottom: 0.75rem; flex-wrap: wrap;
-}
-.filter-bar .form-select {
-  padding: 8px 32px 8px 10px;
-  font-size: 13px;
-  flex: 1;
-  min-width: 140px;
-}
+.filter-bar { display: flex; gap: 10px; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.filter-bar .form-select { padding: 8px 32px 8px 10px; font-size: 13px; flex: 1; min-width: 140px; }
 
 /* ── Table ── */
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .kintai-table {
   width: 100%; border-collapse: collapse; font-size: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
 }
 .kintai-table th {
   font-size: 10px; font-weight: 500; color: var(--text3);
@@ -164,20 +164,68 @@ body {
 .kintai-table td {
   padding: 8px 8px; text-align: left;
   border-bottom: 1px solid var(--border);
-  color: var(--text); font-family: 'DM Mono', monospace;
-  white-space: nowrap;
+  color: var(--text); font-family: 'DM Mono', monospace; white-space: nowrap;
 }
-.kintai-table td:nth-child(2) {
-  font-family: 'Noto Sans JP', sans-serif;
-}
+.kintai-table td.td-emp { font-family: 'Noto Sans JP', sans-serif; }
 .kintai-table tr:last-child td { border-bottom: none; }
 .kintai-table .total-row td {
   font-weight: 600; color: var(--accent);
-  border-top: 2px solid var(--accent);
-  background: var(--green-bg);
+  border-top: 2px solid var(--accent); background: var(--green-bg);
 }
 
-/* ── Loading / Error ── */
+/* ── Delete Button ── */
+.btn-delete {
+  background: none; border: none; cursor: pointer;
+  font-size: 13px; padding: 2px 6px; opacity: 0.35;
+  transition: opacity 0.15s; color: var(--red-text);
+}
+.btn-delete:hover { opacity: 1; }
+
+/* ── Admin Cards ── */
+.admin-cards {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px; margin-bottom: 1.5rem;
+}
+.admin-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1rem;
+  cursor: pointer; transition: all 0.15s; text-decoration: none; color: inherit; display: block;
+}
+.admin-card:hover { background: var(--surface2); border-color: var(--accent); }
+.admin-card-name {
+  font-size: 15px; font-weight: 600; margin-bottom: 10px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.admin-card-row {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text2); margin-bottom: 4px;
+}
+.admin-card-row span:last-child {
+  font-family: 'DM Mono', monospace; font-weight: 500; color: var(--text);
+}
+.admin-card-total {
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);
+  font-size: 18px; font-weight: 600; color: var(--accent);
+  font-family: 'DM Mono', monospace; text-align: right;
+}
+
+/* ── Accordion ── */
+.accordion {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden; margin-top: 1rem;
+}
+.accordion-header {
+  padding: 0.875rem 1rem; cursor: pointer; font-weight: 500;
+  display: flex; justify-content: space-between; align-items: center;
+  transition: background 0.15s; user-select: none;
+}
+.accordion-header:hover { background: var(--surface2); }
+.accordion-body { display: none; border-top: 1px solid var(--border); }
+.accordion.open .accordion-body { display: block; }
+.chevron { font-size: 9px; color: var(--text3); transition: transform 0.2s; }
+.accordion.open .chevron { transform: rotate(180deg); }
+
+/* ── Loading / Error / Empty ── */
 .loading {
   display: flex; align-items: center; gap: 12px;
   padding: 2rem; color: var(--text3);
@@ -192,8 +240,7 @@ body {
 .error-msg {
   padding: 1rem; background: var(--red-bg);
   border: 1px solid var(--red-border);
-  border-radius: var(--radius); color: var(--red-text);
-  font-size: 13px;
+  border-radius: var(--radius); color: var(--red-text); font-size: 13px;
 }
 .empty-msg {
   padding: 2rem; text-align: center;
@@ -224,6 +271,10 @@ body {
 @media (max-width: 480px) {
   .page { padding: 1rem 0.75rem 3rem; }
   .site-name { font-size: 17px; }
+  .emp-page-name { font-size: 18px; }
+  .emp-select-grid { grid-template-columns: 1fr; }
+  .emp-select-btn { padding: 1.25rem; font-size: 16px; }
+  .admin-cards { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
   .form-card { padding: 1rem; }
   .btn-submit { padding: 12px; font-size: 15px; }
@@ -247,67 +298,87 @@ body {
     </div>
   </div>
 
-  <!-- 打刻フォーム -->
-  <div class="form-card">
-    <div class="form-title">STAMP — 打刻</div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label">従業員名</label>
-        <select class="form-select" id="emp-name">
-          <option value="木嵜 次郎">木嵜 次郎</option>
-          <option value="苫田 泰綺">苫田 泰綺</option>
-          <option value="高橋 宗孝">高橋 宗孝</option>
-          <option value="澤田 悠吾">澤田 悠吾</option>
-          <option value="小山 雅史">小山 雅史</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">打刻種別</label>
-        <select class="form-select" id="stamp-type">
-          <option value="出勤">出勤</option>
-          <option value="休憩開始">休憩開始</option>
-          <option value="休憩終了">休憩終了</option>
-          <option value="退勤">退勤</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">日時</label>
-        <div class="datetime-grid">
-          <select class="form-select" id="stamp-date"></select>
-          <select class="form-select" id="stamp-hour"></select>
-          <select class="form-select" id="stamp-min"></select>
+  <!-- ════ View: 社員選択 ════ -->
+  <div id="view-select" style="display:none;">
+    <div class="select-label">社員を選択してください</div>
+    <div class="emp-select-grid">
+      <a href="?emp=木嵜 次郎" class="emp-select-btn">木嵜 次郎</a>
+      <a href="?emp=苫田 泰綺" class="emp-select-btn">苫田 泰綺</a>
+      <a href="?emp=高橋 宗孝" class="emp-select-btn">高橋 宗孝</a>
+      <a href="?emp=澤田 悠吾" class="emp-select-btn">澤田 悠吾</a>
+      <a href="?emp=小山 雅史" class="emp-select-btn">小山 雅史</a>
+    </div>
+    <a href="?admin=true" class="admin-link">📊 管理者ダッシュボード</a>
+  </div>
+
+  <!-- ════ View: 社員打刻ページ ════ -->
+  <div id="view-stamp" style="display:none;">
+    <a href="./" class="btn-back">← 社員選択に戻る</a>
+    <div class="emp-page-name" id="stamp-emp-name"></div>
+
+    <div class="form-card">
+      <div class="form-title">STAMP — 打刻</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">打刻種別</label>
+          <select class="form-select" id="stamp-type">
+            <option value="出勤">出勤</option>
+            <option value="休憩開始">休憩開始</option>
+            <option value="休憩終了">休憩終了</option>
+            <option value="退勤">退勤</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">時給（円）</label>
+          <select class="form-select" id="hourly-rate">
+            <option value="1200">1,200</option>
+            <option value="1500">1,500</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">日時</label>
+          <div class="datetime-grid">
+            <select class="form-select" id="stamp-date"></select>
+            <select class="form-select" id="stamp-hour"></select>
+            <select class="form-select" id="stamp-min"></select>
+          </div>
+        </div>
+        <div class="form-group full">
+          <button class="btn-submit" id="btn-stamp" onclick="handleStamp()">打刻する</button>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">時給（円）</label>
-        <select class="form-select" id="hourly-rate">
-          <option value="1200">1,200</option>
-          <option value="1500">1,500</option>
-        </select>
-      </div>
-      <div class="form-group full">
-        <button class="btn-submit" id="btn-stamp" onclick="handleStamp()">打刻する</button>
-      </div>
+    </div>
+
+    <div class="section-heading">RECORDS — 当月の勤怠一覧</div>
+    <div class="filter-bar">
+      <select class="form-select" id="stamp-filter-month"></select>
+    </div>
+    <div id="stamp-records-container">
+      <div class="loading"><div class="spinner"></div><span>読み込み中...</span></div>
     </div>
   </div>
 
-  <!-- 勤怠リスト -->
-  <div class="section-heading">RECORDS — 勤怠一覧</div>
-  <div class="filter-bar">
-    <select class="form-select" id="filter-month"></select>
-    <select class="form-select" id="filter-emp">
-      <option value="">全員</option>
-      <option value="木嵜 次郎">木嵜 次郎</option>
-      <option value="苫田 泰綺">苫田 泰綺</option>
-      <option value="高橋 宗孝">高橋 宗孝</option>
-      <option value="澤田 悠吾">澤田 悠吾</option>
-      <option value="小山 雅史">小山 雅史</option>
-    </select>
-  </div>
-  <div id="records-container">
-    <div class="loading">
-      <div class="spinner"></div>
-      <span>データを読み込み中...</span>
+  <!-- ════ View: 管理者ダッシュボード ════ -->
+  <div id="view-admin" style="display:none;">
+    <a href="./" class="btn-back">← 社員選択に戻る</a>
+    <div class="emp-page-name">管理者ダッシュボード</div>
+
+    <div class="filter-bar">
+      <select class="form-select" id="admin-filter-month"></select>
+    </div>
+
+    <div class="admin-cards" id="admin-cards">
+      <div class="loading"><div class="spinner"></div><span>集計中...</span></div>
+    </div>
+
+    <div class="accordion" id="admin-accordion">
+      <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
+        <span>全打刻一覧</span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="accordion-body">
+        <div id="admin-records-container"></div>
+      </div>
     </div>
   </div>
 
@@ -322,8 +393,12 @@ body {
 
 <script>
 // ── 定数 ──────────────────────────────────────────────
-const WORKER = 'https://ukanowa-api.commonground-oka.workers.dev';
-const DB_ID  = '7d60fe26b1704935a8ab995753585999';
+const WORKER    = 'https://ukanowa-api.commonground-oka.workers.dev';
+const DB_ID     = '7d60fe26b1704935a8ab995753585999';
+const EMPLOYEES = ['木嵜 次郎', '苫田 泰綺', '高橋 宗孝', '澤田 悠吾', '小山 雅史'];
+
+// ── URL パラメータ ────────────────────────────────────
+const getParam = key => new URLSearchParams(location.search).get(key);
 
 // ── Worker API ────────────────────────────────────────
 async function queryDB(dbId, opts = {}) {
@@ -366,58 +441,25 @@ async function createPage(properties) {
 }
 
 // ── Notion プロパティ取得ヘルパー ─────────────────────
-const getTitle = (page) =>
-  page.properties['名前']?.title?.[0]?.plain_text || '';
-const getRichText = (page, key) =>
-  page.properties[key]?.rich_text?.[0]?.plain_text || '';
-const getSelect = (page, key) =>
-  page.properties[key]?.select?.name || '';
-const getNumber = (page, key) =>
-  page.properties[key]?.number ?? null;
-const getDate = (page, key) =>
-  page.properties[key]?.date?.start || '';
+const getTitle    = page => page.properties['名前']?.title?.[0]?.plain_text || '';
+const getRichText = (page, key) => page.properties[key]?.rich_text?.[0]?.plain_text || '';
+const getSelect   = (page, key) => page.properties[key]?.select?.name || '';
+const getNumber   = (page, key) => page.properties[key]?.number ?? null;
+const getDateProp = (page, key) => page.properties[key]?.date?.start || '';
 
-// ── HTML エスケープ ────────────────────────────────────
+// ── ユーティリティ ───────────────────────────────────
 const esc = s => String(s)
-  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-  .replace(/"/g,'&quot;');
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-// ── トースト通知 ──────────────────────────────────────
-function showToast(msg, isError = false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = isError ? 'error' : '';
-  t.style.opacity = '1';
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 3000);
-}
-
-// ── 日時ユーティリティ ─────────────────────────────────
-function toLocalISO(dt) {
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth() + 1).padStart(2, '0');
-  const d = String(dt.getDate()).padStart(2, '0');
-  const h = String(dt.getHours()).padStart(2, '0');
-  const mi = String(dt.getMinutes()).padStart(2, '0');
-  return `${y}-${m}-${d}T${h}:${mi}`;
-}
-
-function toISOString(dtLocalStr) {
-  // datetime-local -> ISO 8601 with timezone offset
-  const dt = new Date(dtLocalStr);
-  return dt.toISOString();
-}
+const toMin = hhmm => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+};
 
 function formatDate(isoStr) {
   if (!isoStr) return '—';
   const d = new Date(isoStr);
   return `${d.getMonth() + 1}/${d.getDate()}`;
-}
-
-function formatTime(isoStr) {
-  if (!isoStr) return '—';
-  const d = new Date(isoStr);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 function formatMinutes(min) {
@@ -432,13 +474,62 @@ function formatYen(n) {
   return n.toLocaleString() + '円';
 }
 
-// ── 初期化：日時プルダウン ─────────────────────────────
-function initForm() {
-  const now = new Date();
-  document.getElementById('header-date').textContent =
-    now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+// ── トースト通知 ──────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = isError ? 'error' : '';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 3000);
+}
 
-  // 日付プルダウン：過去7日 + 今日 + 翌日
+// ── 月選択プルダウン初期化 ────────────────────────────
+function initMonthSelect(selectId, onChange) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const now = new Date();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = `${d.getFullYear()}年${d.getMonth() + 1}月`;
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', onChange);
+}
+
+// ── レコード削除 ──────────────────────────────────────
+async function deleteRecord(pageId) {
+  if (!confirm('この打刻記録を削除しますか？')) return;
+  try {
+    const res = await fetch(`${WORKER}/pages/${pageId}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('削除しました');
+      if (getParam('admin') === 'true') loadAdminData();
+      else loadStampRecords();
+    } else {
+      showToast('削除に失敗しました', true);
+    }
+  } catch (e) {
+    console.error('削除エラー:', e);
+    showToast('削除に失敗しました', true);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  社員打刻ページ
+// ════════════════════════════════════════════════════════
+
+function initStampPage(empName) {
+  document.getElementById('stamp-emp-name').textContent = `${empName} さんの打刻`;
+  document.title = `${empName} - うかのわ 勤怠管理`;
+
+  const now = new Date();
+
+  // 日付プルダウン：過去7日〜翌日
   const dateSel = document.getElementById('stamp-date');
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   for (let i = -7; i <= 1; i++) {
@@ -452,7 +543,7 @@ function initForm() {
     dateSel.appendChild(opt);
   }
 
-  // 時プルダウン：0〜23
+  // 時プルダウン
   const hourSel = document.getElementById('stamp-hour');
   for (let h = 0; h < 24; h++) {
     const opt = document.createElement('option');
@@ -462,7 +553,7 @@ function initForm() {
     hourSel.appendChild(opt);
   }
 
-  // 分プルダウン：00/15/30/45
+  // 分プルダウン
   const minSel = document.getElementById('stamp-min');
   const nearest15 = Math.round(now.getMinutes() / 15) * 15;
   const defaultMin = nearest15 >= 60 ? 0 : nearest15;
@@ -473,29 +564,14 @@ function initForm() {
     if (m === defaultMin) opt.selected = true;
     minSel.appendChild(opt);
   }
-}
 
-// ── 月選択プルダウン初期化 ────────────────────────────
-function initMonthFilter() {
-  const sel = document.getElementById('filter-month');
-  const now = new Date();
-  // 過去6ヶ月 + 当月
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const label = `${d.getFullYear()}年${d.getMonth() + 1}月`;
-    const opt = document.createElement('option');
-    opt.value = val;
-    opt.textContent = label;
-    sel.appendChild(opt);
-  }
-  sel.addEventListener('change', loadRecords);
-  document.getElementById('filter-emp').addEventListener('change', loadRecords);
+  initMonthSelect('stamp-filter-month', loadStampRecords);
+  loadStampRecords();
 }
 
 // ── 打刻処理 ─────────────────────────────────────────
 async function handleStamp() {
-  const empName   = document.getElementById('emp-name').value;
+  const empName   = getParam('emp');
   const stampType = document.getElementById('stamp-type').value;
   const dateStr   = document.getElementById('stamp-date').value;
   const hourVal   = document.getElementById('stamp-hour').value;
@@ -503,7 +579,7 @@ async function handleStamp() {
   const hourlyRate = parseInt(document.getElementById('hourly-rate').value);
   const btn       = document.getElementById('btn-stamp');
 
-  const timeStr = `${hourVal}:${minVal}`;
+  const timeStr  = `${hourVal}:${minVal}`;
   const pageName = `${empName}_${dateStr}`;
 
   btn.disabled = true;
@@ -511,7 +587,6 @@ async function handleStamp() {
 
   try {
     if (stampType === '出勤') {
-      // 新レコード作成
       await createPage({
         '名前':     { title: [{ text: { content: pageName } }] },
         '従業員名': { select: { name: empName } },
@@ -519,21 +594,18 @@ async function handleStamp() {
         '出勤時刻': { rich_text: [{ text: { content: timeStr } }] },
         '時給':     { number: hourlyRate },
       });
-      showToast(`${empName} の出勤を記録しました`);
+      showToast('出勤を記録しました');
 
     } else {
-      // 当日・同従業員のレコードを検索
       const res = await queryDB(DB_ID, {
-        filter: {
-          and: [
-            { property: '従業員名', select: { equals: empName } },
-            { property: '日付', date: { equals: dateStr } },
-          ],
-        },
+        filter: { and: [
+          { property: '従業員名', select: { equals: empName } },
+          { property: '日付', date: { equals: dateStr } },
+        ] },
       });
 
-      if (!res.results || res.results.length === 0) {
-        showToast(`${empName} の本日の出勤記録がありません`, true);
+      if (!res.results?.length) {
+        showToast('本日の出勤記録がありません', true);
         return;
       }
 
@@ -544,37 +616,29 @@ async function handleStamp() {
         await patchPage(pageId, {
           '休憩開始': { rich_text: [{ text: { content: timeStr } }] },
         });
-        showToast(`${empName} の休憩開始を記録しました`);
+        showToast('休憩開始を記録しました');
 
       } else if (stampType === '休憩終了') {
         await patchPage(pageId, {
           '休憩終了': { rich_text: [{ text: { content: timeStr } }] },
         });
-        showToast(`${empName} の休憩終了を記録しました`);
+        showToast('休憩終了を記録しました');
 
       } else if (stampType === '退勤') {
-        // 実働時間・日当を計算（HH:MM文字列から分に変換）
         const startTime  = getRichText(record, '出勤時刻');
         const breakStart = getRichText(record, '休憩開始');
         const breakEnd   = getRichText(record, '休憩終了');
         const recordRate = getNumber(record, '時給') || hourlyRate;
 
         if (!startTime) {
-          showToast('出勤時刻が記録されていません', true);
+          showToast('出勤時刻が未記録です', true);
           return;
         }
 
-        const toMin = (hhmm) => {
-          const [h, m] = hhmm.split(':').map(Number);
-          return h * 60 + m;
-        };
         const endMin   = toMin(timeStr);
         const startMin = toMin(startTime);
         let breakMinutes = 0;
-
-        if (breakStart && breakEnd) {
-          breakMinutes = toMin(breakEnd) - toMin(breakStart);
-        }
+        if (breakStart && breakEnd) breakMinutes = toMin(breakEnd) - toMin(breakStart);
 
         const workMin  = Math.max(0, endMin - startMin - breakMinutes);
         const dailyPay = Math.floor(workMin / 60 * recordRate);
@@ -584,12 +648,11 @@ async function handleStamp() {
           '実働分':   { number: workMin },
           '日当':     { number: dailyPay },
         });
-        showToast(`${empName} の退勤を記録 (実働${formatMinutes(workMin)}, ${formatYen(dailyPay)})`);
+        showToast(`退勤記録 (実働${formatMinutes(workMin)}, ${formatYen(dailyPay)})`);
       }
     }
 
-    // リスト再読み込み
-    await loadRecords();
+    await loadStampRecords();
 
   } catch (e) {
     console.error('打刻エラー:', e);
@@ -600,87 +663,67 @@ async function handleStamp() {
   }
 }
 
-// ── レコード読み込み・表示 ────────────────────────────
-async function loadRecords() {
-  const container = document.getElementById('records-container');
-  const monthVal  = document.getElementById('filter-month').value;
-  const empFilter = document.getElementById('filter-emp').value;
-
+// ── 社員別レコード読み込み ────────────────────────────
+async function loadStampRecords() {
+  const empName   = getParam('emp');
+  const container = document.getElementById('stamp-records-container');
+  const monthVal  = document.getElementById('stamp-filter-month').value;
   if (!monthVal) return;
 
   container.innerHTML = '<div class="loading"><div class="spinner"></div><span>読み込み中...</span></div>';
 
   try {
-    // 月初・月末を計算
     const [y, m] = monthVal.split('-').map(Number);
     const startDate = `${y}-${String(m).padStart(2, '0')}-01`;
     const endDate   = `${y}-${String(m).padStart(2, '0')}-${new Date(y, m, 0).getDate()}`;
 
-    // フィルタ構成
-    const filters = [
-      { property: '日付', date: { on_or_after: startDate } },
-      { property: '日付', date: { on_or_before: endDate } },
-    ];
-    if (empFilter) {
-      filters.push({ property: '従業員名', select: { equals: empFilter } });
-    }
-
     const res = await queryDB(DB_ID, {
-      filter: { and: filters },
+      filter: { and: [
+        { property: '従業員名', select: { equals: empName } },
+        { property: '日付', date: { on_or_after: startDate } },
+        { property: '日付', date: { on_or_before: endDate } },
+      ] },
       sorts: [{ property: '日付', direction: 'ascending' }],
     });
 
     const records = res.results || [];
-
-    if (records.length === 0) {
+    if (!records.length) {
       container.innerHTML = '<div class="empty-msg">該当するレコードがありません</div>';
       return;
     }
 
-    // 集計
-    let totalWorkMin = 0;
-    let totalPay = 0;
-
+    let totalWorkMin = 0, totalPay = 0;
     const rows = records.map(r => {
-      const date     = getDate(r, '日付');
-      const emp      = getSelect(r, '従業員名');
-      const clockIn  = getRichText(r, '出勤時刻');
+      const date    = getDateProp(r, '日付');
+      const clockIn = getRichText(r, '出勤時刻');
       const clockOut = getRichText(r, '退勤時刻');
-      const workMin  = getNumber(r, '実働分');
-      const pay      = getNumber(r, '日当');
-
+      const workMin = getNumber(r, '実働分');
+      const pay     = getNumber(r, '日当');
       if (workMin) totalWorkMin += workMin;
       if (pay)     totalPay += pay;
-
       return `<tr>
         <td>${formatDate(date)}</td>
-        <td>${esc(emp)}</td>
         <td>${clockIn || '—'}</td>
         <td>${clockOut || '—'}</td>
         <td>${workMin ? formatMinutes(workMin) : '—'}</td>
         <td>${pay ? formatYen(pay) : '—'}</td>
+        <td><button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button></td>
       </tr>`;
     }).join('');
 
     container.innerHTML = `
       <div class="table-wrap">
         <table class="kintai-table">
-          <thead>
-            <tr>
-              <th>日付</th>
-              <th>従業員名</th>
-              <th>出勤</th>
-              <th>退勤</th>
-              <th>実働</th>
-              <th>日当</th>
-            </tr>
-          </thead>
+          <thead><tr>
+            <th>日付</th><th>出勤</th><th>退勤</th><th>実働</th><th>日当</th><th></th>
+          </tr></thead>
           <tbody>
             ${rows}
             <tr class="total-row">
-              <td colspan="4">月合計</td>
+              <td colspan="3">月合計</td>
               <td>${formatMinutes(totalWorkMin)}</td>
               <td>${formatYen(totalPay)}</td>
+              <td></td>
             </tr>
           </tbody>
         </table>
@@ -688,14 +731,147 @@ async function loadRecords() {
 
   } catch (e) {
     console.error('レコード取得エラー:', e);
-    container.innerHTML = `<div class="error-msg">データの取得に失敗しました: ${esc(e.message)}</div>`;
+    container.innerHTML = `<div class="error-msg">取得失敗: ${esc(e.message)}</div>`;
   }
 }
 
-// ── 起動 ──────────────────────────────────────────────
-initForm();
-initMonthFilter();
-loadRecords();
+// ════════════════════════════════════════════════════════
+//  管理者ダッシュボード
+// ════════════════════════════════════════════════════════
+
+function initAdminPage() {
+  document.title = '管理者ダッシュボード - うかのわ 勤怠管理';
+  initMonthSelect('admin-filter-month', loadAdminData);
+  loadAdminData();
+}
+
+async function loadAdminData() {
+  const monthVal = document.getElementById('admin-filter-month').value;
+  if (!monthVal) return;
+
+  const cardsContainer   = document.getElementById('admin-cards');
+  const recordsContainer = document.getElementById('admin-records-container');
+
+  cardsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><span>集計中...</span></div>';
+
+  try {
+    const [y, m] = monthVal.split('-').map(Number);
+    const startDate = `${y}-${String(m).padStart(2, '0')}-01`;
+    const endDate   = `${y}-${String(m).padStart(2, '0')}-${new Date(y, m, 0).getDate()}`;
+
+    const res = await queryDB(DB_ID, {
+      filter: { and: [
+        { property: '日付', date: { on_or_after: startDate } },
+        { property: '日付', date: { on_or_before: endDate } },
+      ] },
+      sorts: [{ property: '日付', direction: 'ascending' }],
+    });
+
+    const records = res.results || [];
+
+    // 社員別にグルーピング
+    const byEmp = {};
+    for (const emp of EMPLOYEES) byEmp[emp] = [];
+    for (const r of records) {
+      const emp = getSelect(r, '従業員名');
+      if (byEmp[emp]) byEmp[emp].push(r);
+    }
+
+    // サマリーカード描画
+    let cardsHtml = '';
+    for (const emp of EMPLOYEES) {
+      const empRecords = byEmp[emp];
+      const workDays = empRecords.filter(r => getRichText(r, '出勤時刻')).length;
+      let totalMin = 0, totalPay = 0;
+      for (const r of empRecords) {
+        totalMin += getNumber(r, '実働分') || 0;
+        totalPay += getNumber(r, '日当') || 0;
+      }
+      cardsHtml += `
+        <a href="?emp=${encodeURIComponent(emp)}" class="admin-card">
+          <div class="admin-card-name">${esc(emp)}</div>
+          <div class="admin-card-row"><span>出勤日数</span><span>${workDays}日</span></div>
+          <div class="admin-card-row"><span>総実働時間</span><span>${formatMinutes(totalMin)}</span></div>
+          <div class="admin-card-total">${formatYen(totalPay)}</div>
+        </a>`;
+    }
+    cardsContainer.innerHTML = cardsHtml;
+
+    // 全打刻一覧テーブル
+    if (!records.length) {
+      recordsContainer.innerHTML = '<div class="empty-msg">レコードなし</div>';
+      return;
+    }
+
+    let totalWorkMin = 0, totalPay = 0;
+    const rows = records.map(r => {
+      const date     = getDateProp(r, '日付');
+      const emp      = getSelect(r, '従業員名');
+      const clockIn  = getRichText(r, '出勤時刻');
+      const clockOut = getRichText(r, '退勤時刻');
+      const workMin  = getNumber(r, '実働分');
+      const pay      = getNumber(r, '日当');
+      if (workMin) totalWorkMin += workMin;
+      if (pay)     totalPay += pay;
+      return `<tr>
+        <td>${formatDate(date)}</td>
+        <td class="td-emp">${esc(emp)}</td>
+        <td>${clockIn || '—'}</td>
+        <td>${clockOut || '—'}</td>
+        <td>${workMin ? formatMinutes(workMin) : '—'}</td>
+        <td>${pay ? formatYen(pay) : '—'}</td>
+        <td><button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button></td>
+      </tr>`;
+    }).join('');
+
+    recordsContainer.innerHTML = `
+      <div class="table-wrap">
+        <table class="kintai-table">
+          <thead><tr>
+            <th>日付</th><th>従業員</th><th>出勤</th><th>退勤</th><th>実働</th><th>日当</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${rows}
+            <tr class="total-row">
+              <td colspan="4">月合計</td>
+              <td>${formatMinutes(totalWorkMin)}</td>
+              <td>${formatYen(totalPay)}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>`;
+
+  } catch (e) {
+    console.error('管理者データ取得エラー:', e);
+    cardsContainer.innerHTML = `<div class="error-msg">取得失敗: ${esc(e.message)}</div>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  ルーティング・初期化
+// ════════════════════════════════════════════════════════
+
+function init() {
+  const now = new Date();
+  document.getElementById('header-date').textContent =
+    now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const emp   = getParam('emp');
+  const admin = getParam('admin');
+
+  if (admin === 'true') {
+    document.getElementById('view-admin').style.display = '';
+    initAdminPage();
+  } else if (emp) {
+    document.getElementById('view-stamp').style.display = '';
+    initStampPage(emp);
+  } else {
+    document.getElementById('view-select').style.display = '';
+  }
+}
+
+init();
 </script>
 </body>
 </html>
