@@ -346,12 +346,12 @@ async function patchPage(pageId, properties) {
   return res.json();
 }
 
-async function createPage(databaseId, properties) {
+async function createPage(properties) {
   const res = await fetch(`${WORKER}/pages`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      parent: { database_id: databaseId },
+      parent: { database_id: DB_ID },
       properties,
     }),
   });
@@ -508,7 +508,7 @@ async function handleStamp() {
   try {
     if (stampType === '出勤') {
       // 新レコード作成
-      await createPage(DB_ID, {
+      await createPage({
         '名前':     { title: [{ text: { content: pageName } }] },
         '従業員名': { select: { name: empName } },
         '日付':     { date: { start: dateStr } },
