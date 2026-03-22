@@ -342,7 +342,10 @@ async function patchPage(pageId, properties) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ properties }),
   });
-  if (!res.ok) throw new Error(`更新エラー: ${res.status} ${res.statusText}`);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`更新エラー: ${res.status} ${err}`);
+  }
   return res.json();
 }
 
@@ -355,7 +358,10 @@ async function createPage(properties) {
       properties,
     }),
   });
-  if (!res.ok) throw new Error(`作成エラー: ${res.status} ${res.statusText}`);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`作成エラー: ${res.status} ${err}`);
+  }
   return res.json();
 }
 
@@ -497,9 +503,7 @@ async function handleStamp() {
   const hourlyRate = parseInt(document.getElementById('hourly-rate').value);
   const btn       = document.getElementById('btn-stamp');
 
-  const dtValue = `${dateStr}T${hourVal}:${minVal}`;
-  const dt = new Date(dtValue);
-  const isoTime = dt.toISOString();
+  const timeStr = `${hourVal}:${minVal}`;
   const pageName = `${empName}_${dateStr}`;
 
   btn.disabled = true;
@@ -512,7 +516,7 @@ async function handleStamp() {
         '名前':     { title: [{ text: { content: pageName } }] },
         '従業員名': { select: { name: empName } },
         '日付':     { date: { start: dateStr } },
-        '出勤時刻': { date: { start: isoTime } },
+        '出勤時刻': { rich_text: [{ text: { content: timeStr } }] },
         '時給':     { number: hourlyRate },
       });
       showToast(`${empName} の出勤を記録しました`);
@@ -538,21 +542,21 @@ async function handleStamp() {
 
       if (stampType === '休憩開始') {
         await patchPage(pageId, {
-          '休憩開始': { date: { start: isoTime } },
+          '休憩開始': { rich_text: [{ text: { content: timeStr } }] },
         });
         showToast(`${empName} の休憩開始を記録しました`);
 
       } else if (stampType === '休憩終了') {
         await patchPage(pageId, {
-          '休憩終了': { date: { start: isoTime } },
+          '休憩終了': { rich_text: [{ text: { content: timeStr } }] },
         });
         showToast(`${empName} の休憩終了を記録しました`);
 
       } else if (stampType === '退勤') {
-        // 実働時間・日当を計算
-        const startTime = getDate(record, '出勤時刻');
-        const breakStart = getDate(record, '休憩開始');
-        const breakEnd = getDate(record, '休憩終了');
+        // 実働時間・日当を計算（HH:MM文字列から分に変換）
+        const startTime  = getRichText(record, '出勤時刻');
+        const breakStart = getRichText(record, '休憩開始');
+        const breakEnd   = getRichText(record, '休憩終了');
         const recordRate = getNumber(record, '時給') || hourlyRate;
 
         if (!startTime) {
@@ -560,20 +564,23 @@ async function handleStamp() {
           return;
         }
 
-        const startMs = new Date(startTime).getTime();
-        const endMs   = dt.getTime();
-        let breakMin  = 0;
+        const toMin = (hhmm) => {
+          const [h, m] = hhmm.split(':').map(Number);
+          return h * 60 + m;
+        };
+        const endMin   = toMin(timeStr);
+        const startMin = toMin(startTime);
+        let breakMinutes = 0;
 
         if (breakStart && breakEnd) {
-          breakMin = Math.floor((new Date(breakEnd).getTime() - new Date(breakStart).getTime()) / 60000);
+          breakMinutes = toMin(breakEnd) - toMin(breakStart);
         }
 
-        const totalMin = Math.floor((endMs - startMs) / 60000);
-        const workMin  = Math.max(0, totalMin - breakMin);
+        const workMin  = Math.max(0, endMin - startMin - breakMinutes);
         const dailyPay = Math.floor(workMin / 60 * recordRate);
 
         await patchPage(pageId, {
-          '退勤時刻': { date: { start: isoTime } },
+          '退勤時刻': { rich_text: [{ text: { content: timeStr } }] },
           '実働分':   { number: workMin },
           '日当':     { number: dailyPay },
         });
@@ -637,8 +644,8 @@ async function loadRecords() {
     const rows = records.map(r => {
       const date     = getDate(r, '日付');
       const emp      = getSelect(r, '従業員名');
-      const clockIn  = getDate(r, '出勤時刻');
-      const clockOut = getDate(r, '退勤時刻');
+      const clockIn  = getRichText(r, '出勤時刻');
+      const clockOut = getRichText(r, '退勤時刻');
       const workMin  = getNumber(r, '実働分');
       const pay      = getNumber(r, '日当');
 
@@ -648,8 +655,8 @@ async function loadRecords() {
       return `<tr>
         <td>${formatDate(date)}</td>
         <td>${esc(emp)}</td>
-        <td>${formatTime(clockIn)}</td>
-        <td>${formatTime(clockOut)}</td>
+        <td>${clockIn || '—'}</td>
+        <td>${clockOut || '—'}</td>
         <td>${workMin ? formatMinutes(workMin) : '—'}</td>
         <td>${pay ? formatYen(pay) : '—'}</td>
       </tr>`;
