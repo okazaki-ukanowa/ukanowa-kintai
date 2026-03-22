@@ -181,6 +181,52 @@ body {
 }
 .btn-delete:hover { opacity: 1; }
 
+/* ── Edit / Save / Cancel ── */
+.btn-edit {
+  background: none; border: none; cursor: pointer;
+  font-size: 13px; padding: 2px 6px; opacity: 0.35;
+  transition: opacity 0.15s; color: var(--blue-text);
+}
+.btn-edit:hover { opacity: 1; }
+.btn-save {
+  font-size: 12px; padding: 6px 14px;
+  border: 1px solid var(--green-border); border-radius: var(--radius);
+  background: var(--green-bg); color: var(--green-text);
+  cursor: pointer; font-family: 'Noto Sans JP', sans-serif; font-weight: 500;
+  transition: opacity 0.15s;
+}
+.btn-save:hover { opacity: 0.85; }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-cancel {
+  font-size: 12px; padding: 6px 14px;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  background: var(--surface2); color: var(--text2);
+  cursor: pointer; font-family: 'Noto Sans JP', sans-serif;
+  transition: opacity 0.15s;
+}
+.btn-cancel:hover { opacity: 0.85; }
+
+/* ── Edit Row ── */
+.edit-row td { background: var(--blue-bg); padding: 12px !important; }
+.edit-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+  margin-bottom: 10px;
+}
+.edit-field { display: flex; flex-direction: column; gap: 3px; }
+.edit-field label {
+  font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace;
+}
+.edit-field input[type="time"],
+.edit-field select {
+  padding: 6px 8px; font-size: 13px; font-family: 'DM Mono', monospace;
+  border: 1px solid var(--blue-border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text); outline: none;
+  width: 100%;
+}
+.edit-field input[type="time"]:focus,
+.edit-field select:focus { border-color: var(--accent); }
+.edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
 /* ── Admin Cards ── */
 .admin-cards {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -281,6 +327,7 @@ body {
   .kintai-table { font-size: 11px; }
   .kintai-table th, .kintai-table td { padding: 6px 5px; }
   .filter-bar .form-select { font-size: 12px; }
+  .edit-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 </head>
@@ -694,20 +741,26 @@ async function loadStampRecords() {
 
     let totalWorkMin = 0, totalPay = 0;
     const rows = records.map(r => {
-      const date    = getDateProp(r, '日付');
-      const clockIn = getRichText(r, '出勤時刻');
-      const clockOut = getRichText(r, '退勤時刻');
-      const workMin = getNumber(r, '実働分');
-      const pay     = getNumber(r, '日当');
+      const date       = getDateProp(r, '日付');
+      const clockIn    = getRichText(r, '出勤時刻');
+      const clockOut   = getRichText(r, '退勤時刻');
+      const breakStart = getRichText(r, '休憩開始');
+      const breakEnd   = getRichText(r, '休憩終了');
+      const rate       = getNumber(r, '時給');
+      const workMin    = getNumber(r, '実働分');
+      const pay        = getNumber(r, '日当');
       if (workMin) totalWorkMin += workMin;
       if (pay)     totalPay += pay;
-      return `<tr>
+      return `<tr id="row-${r.id}" data-clockin="${esc(clockIn)}" data-clockout="${esc(clockOut)}" data-breakstart="${esc(breakStart)}" data-breakend="${esc(breakEnd)}" data-rate="${rate || 1200}">
         <td>${formatDate(date)}</td>
         <td>${clockIn || '—'}</td>
         <td>${clockOut || '—'}</td>
         <td>${workMin ? formatMinutes(workMin) : '—'}</td>
         <td>${pay ? formatYen(pay) : '—'}</td>
-        <td><button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button></td>
+        <td>
+          <button class="btn-edit" onclick="editRecord('${r.id}',6)" title="修正">✏️</button>
+          <button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button>
+        </td>
       </tr>`;
     }).join('');
 
@@ -805,22 +858,28 @@ async function loadAdminData() {
 
     let totalWorkMin = 0, totalPay = 0;
     const rows = records.map(r => {
-      const date     = getDateProp(r, '日付');
-      const emp      = getSelect(r, '従業員名');
-      const clockIn  = getRichText(r, '出勤時刻');
-      const clockOut = getRichText(r, '退勤時刻');
-      const workMin  = getNumber(r, '実働分');
-      const pay      = getNumber(r, '日当');
+      const date       = getDateProp(r, '日付');
+      const emp        = getSelect(r, '従業員名');
+      const clockIn    = getRichText(r, '出勤時刻');
+      const clockOut   = getRichText(r, '退勤時刻');
+      const breakStart = getRichText(r, '休憩開始');
+      const breakEnd   = getRichText(r, '休憩終了');
+      const rate       = getNumber(r, '時給');
+      const workMin    = getNumber(r, '実働分');
+      const pay        = getNumber(r, '日当');
       if (workMin) totalWorkMin += workMin;
       if (pay)     totalPay += pay;
-      return `<tr>
+      return `<tr id="row-${r.id}" data-clockin="${esc(clockIn)}" data-clockout="${esc(clockOut)}" data-breakstart="${esc(breakStart)}" data-breakend="${esc(breakEnd)}" data-rate="${rate || 1200}">
         <td>${formatDate(date)}</td>
         <td class="td-emp">${esc(emp)}</td>
         <td>${clockIn || '—'}</td>
         <td>${clockOut || '—'}</td>
         <td>${workMin ? formatMinutes(workMin) : '—'}</td>
         <td>${pay ? formatYen(pay) : '—'}</td>
-        <td><button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button></td>
+        <td>
+          <button class="btn-edit" onclick="editRecord('${r.id}',7)" title="修正">✏️</button>
+          <button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button>
+        </td>
       </tr>`;
     }).join('');
 
@@ -845,6 +904,125 @@ async function loadAdminData() {
   } catch (e) {
     console.error('管理者データ取得エラー:', e);
     cardsContainer.innerHTML = `<div class="error-msg">取得失敗: ${esc(e.message)}</div>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  インライン編集
+// ════════════════════════════════════════════════════════
+
+function editRecord(pageId, colspan) {
+  // 既存の編集行があれば閉じる
+  const existing = document.querySelector('.edit-row');
+  if (existing) {
+    const prevId = existing.dataset.for;
+    const prevRow = document.getElementById('row-' + prevId);
+    if (prevRow) prevRow.style.display = '';
+    existing.remove();
+  }
+
+  const row = document.getElementById('row-' + pageId);
+  if (!row) return;
+
+  const clockIn    = row.dataset.clockin || '';
+  const clockOut   = row.dataset.clockout || '';
+  const breakStart = row.dataset.breakstart || '';
+  const breakEnd   = row.dataset.breakend || '';
+  const rate       = row.dataset.rate || '1200';
+
+  row.style.display = 'none';
+
+  const editTr = document.createElement('tr');
+  editTr.className = 'edit-row';
+  editTr.dataset.for = pageId;
+  editTr.innerHTML = `
+    <td colspan="${colspan}">
+      <div class="edit-form">
+        <div class="edit-grid">
+          <div class="edit-field">
+            <label>出勤</label>
+            <input type="time" id="edit-in-${pageId}" value="${esc(clockIn)}">
+          </div>
+          <div class="edit-field">
+            <label>休憩開始</label>
+            <input type="time" id="edit-bs-${pageId}" value="${esc(breakStart)}">
+          </div>
+          <div class="edit-field">
+            <label>休憩終了</label>
+            <input type="time" id="edit-be-${pageId}" value="${esc(breakEnd)}">
+          </div>
+          <div class="edit-field">
+            <label>退勤</label>
+            <input type="time" id="edit-out-${pageId}" value="${esc(clockOut)}">
+          </div>
+          <div class="edit-field">
+            <label>時給</label>
+            <select id="edit-rate-${pageId}">
+              <option value="1200"${rate === '1200' ? ' selected' : ''}>1,200</option>
+              <option value="1500"${rate === '1500' ? ' selected' : ''}>1,500</option>
+            </select>
+          </div>
+        </div>
+        <div class="edit-actions">
+          <button class="btn-cancel" onclick="cancelEdit('${pageId}')">✕ キャンセル</button>
+          <button class="btn-save" onclick="saveEdit('${pageId}')">💾 保存</button>
+        </div>
+      </div>
+    </td>`;
+  row.parentNode.insertBefore(editTr, row.nextSibling);
+}
+
+function cancelEdit(pageId) {
+  const editRow = document.querySelector(`.edit-row[data-for="${pageId}"]`);
+  if (editRow) editRow.remove();
+  const row = document.getElementById('row-' + pageId);
+  if (row) row.style.display = '';
+}
+
+async function saveEdit(pageId) {
+  const clockIn    = document.getElementById(`edit-in-${pageId}`).value;
+  const breakStart = document.getElementById(`edit-bs-${pageId}`).value;
+  const breakEnd   = document.getElementById(`edit-be-${pageId}`).value;
+  const clockOut   = document.getElementById(`edit-out-${pageId}`).value;
+  const rate       = parseInt(document.getElementById(`edit-rate-${pageId}`).value);
+
+  const saveBtn = document.querySelector(`.edit-row[data-for="${pageId}"] .btn-save`);
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '保存中...'; }
+
+  try {
+    const props = {
+      '出勤時刻': { rich_text: clockIn    ? [{ text: { content: clockIn } }]    : [] },
+      '休憩開始': { rich_text: breakStart ? [{ text: { content: breakStart } }] : [] },
+      '休憩終了': { rich_text: breakEnd   ? [{ text: { content: breakEnd } }]   : [] },
+      '退勤時刻': { rich_text: clockOut   ? [{ text: { content: clockOut } }]   : [] },
+      '時給':     { number: rate },
+    };
+
+    // 実働分・日当を再計算
+    if (clockIn && clockOut) {
+      const startMin = toMin(clockIn);
+      const endMin   = toMin(clockOut);
+      let breakMinutes = 0;
+      if (breakStart && breakEnd) breakMinutes = toMin(breakEnd) - toMin(breakStart);
+      const workMin  = Math.max(0, endMin - startMin - breakMinutes);
+      const dailyPay = Math.floor(workMin / 60 * rate);
+      props['実働分'] = { number: workMin };
+      props['日当']   = { number: dailyPay };
+    } else {
+      props['実働分'] = { number: null };
+      props['日当']   = { number: null };
+    }
+
+    await patchPage(pageId, props);
+    showToast('修正を保存しました');
+
+    if (getParam('admin') === 'true') loadAdminData();
+    else loadStampRecords();
+
+  } catch (e) {
+    console.error('修正保存エラー:', e);
+    showToast(`保存失敗: ${e.message}`, true);
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 保存'; }
   }
 }
 
