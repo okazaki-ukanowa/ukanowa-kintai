@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>うかのわ 勤怠管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F7F5F0;
+  --surface: #FFFFFF;
+  --surface2: #F0EDE6;
+  --border: #E2DDD5;
+  --border2: #CCC8C0;
+  --text: #1A1816;
+  --text2: #6B6560;
+  --text3: #9B958E;
+  --green-bg: #E8F4E8;
+  --green-text: #2D6A2D;
+  --green-border: #A8D4A8;
+  --amber-bg: #FDF3E0;
+  --amber-text: #8A5C00;
+  --amber-border: #F0CC80;
+  --red-bg: #FDE8E8;
+  --red-text: #8A2020;
+  --red-border: #F0A8A8;
+  --blue-bg: #E8F0FC;
+  --blue-text: #1A4A9A;
+  --blue-border: #A8C0F0;
+  --accent: #2D6A2D;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Layout ── */
+.page { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+/* ── Header ── */
+.site-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 1.75rem; padding-bottom: 1rem;
+  border-bottom: 1.5px solid var(--border2);
+}
+.site-title { font-size: 11px; letter-spacing: 0.12em; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 4px; }
+.site-name { font-size: 20px; font-weight: 600; color: var(--text); }
+.header-right { text-align: right; }
+.header-date { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+/* ── Form Card ── */
+.form-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+}
+.form-title {
+  font-size: 10px; letter-spacing: 0.1em; color: var(--text3);
+  font-family: 'DM Mono', monospace; margin-bottom: 1rem;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-label {
+  font-size: 11px; font-weight: 500; color: var(--text2);
+}
+.form-select, .form-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B6560' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.form-select:focus, .form-input:focus {
+  border-color: var(--accent);
+}
+.btn-submit {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--accent);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-submit:hover { opacity: 0.9; }
+.btn-submit:active { opacity: 0.8; }
+.btn-submit:disabled {
+  opacity: 0.5; cursor: not-allowed;
+}
+
+/* ── Section Heading ── */
+.section-heading {
+  font-size: 10px; letter-spacing: 0.1em; color: var(--text3);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 0.75rem; margin-top: 1.75rem;
+}
+
+/* ── Filter Bar ── */
+.filter-bar {
+  display: flex; gap: 10px; margin-bottom: 0.75rem; flex-wrap: wrap;
+}
+.filter-bar .form-select {
+  padding: 8px 32px 8px 10px;
+  font-size: 13px;
+  flex: 1;
+  min-width: 140px;
+}
+
+/* ── Table ── */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.kintai-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.kintai-table th {
+  font-size: 10px; font-weight: 500; color: var(--text3);
+  padding: 8px 8px; text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-family: 'DM Mono', monospace; white-space: nowrap;
+  background: var(--surface2);
+}
+.kintai-table td {
+  padding: 8px 8px; text-align: left;
+  border-bottom: 1px solid var(--border);
+  color: var(--text); font-family: 'DM Mono', monospace;
+  white-space: nowrap;
+}
+.kintai-table td:nth-child(2) {
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.kintai-table tr:last-child td { border-bottom: none; }
+.kintai-table .total-row td {
+  font-weight: 600; color: var(--accent);
+  border-top: 2px solid var(--accent);
+  background: var(--green-bg);
+}
+
+/* ── Loading / Error ── */
+.loading {
+  display: flex; align-items: center; gap: 12px;
+  padding: 2rem; color: var(--text3);
+  font-family: 'DM Mono', monospace; font-size: 12px;
+}
+.spinner {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--border2); border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-msg {
+  padding: 1rem; background: var(--red-bg);
+  border: 1px solid var(--red-border);
+  border-radius: var(--radius); color: var(--red-text);
+  font-size: 13px;
+}
+.empty-msg {
+  padding: 2rem; text-align: center;
+  color: var(--text3); font-size: 13px;
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  background: #1A1816; color: #fff;
+  font-size: 13px; font-family: 'DM Mono', monospace;
+  padding: 10px 20px; border-radius: 8px; z-index: 999;
+  opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  max-width: 90vw; text-align: center;
+}
+#toast.error { background: var(--red-text); }
+
+/* ── Footer ── */
+.footer {
+  margin-top: 3rem; padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 11px; color: var(--text3);
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .page { padding: 1rem 0.75rem 3rem; }
+  .site-name { font-size: 17px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-card { padding: 1rem; }
+  .btn-submit { padding: 12px; font-size: 15px; }
+  .kintai-table { font-size: 11px; }
+  .kintai-table th, .kintai-table td { padding: 6px 5px; }
+  .filter-bar .form-select { font-size: 12px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="site-header">
+    <div>
+      <div class="site-title">UKANOWA / KINTAI</div>
+      <div class="site-name">勤怠管理システム</div>
+    </div>
+    <div class="header-right">
+      <div class="header-date" id="header-date"></div>
+    </div>
+  </div>
+
+  <!-- 打刻フォーム -->
+  <div class="form-card">
+    <div class="form-title">STAMP — 打刻</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">従業員名</label>
+        <select class="form-select" id="emp-name">
+          <option value="木嵜 次郎">木嵜 次郎</option>
+          <option value="苫田 泰綺">苫田 泰綺</option>
+          <option value="高橋 宗孝">高橋 宗孝</option>
+          <option value="澤田 悠吾">澤田 悠吾</option>
+          <option value="小山 雅史">小山 雅史</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">打刻種別</label>
+        <select class="form-select" id="stamp-type">
+          <option value="出勤">出勤</option>
+          <option value="休憩開始">休憩開始</option>
+          <option value="休憩終了">休憩終了</option>
+          <option value="退勤">退勤</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">日時</label>
+        <input class="form-input" type="datetime-local" id="stamp-datetime">
+      </div>
+      <div class="form-group">
+        <label class="form-label">時給（円）</label>
+        <select class="form-select" id="hourly-rate">
+          <option value="1200">1,200</option>
+          <option value="1500">1,500</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <button class="btn-submit" id="btn-stamp" onclick="handleStamp()">打刻する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 勤怠リスト -->
+  <div class="section-heading">RECORDS — 勤怠一覧</div>
+  <div class="filter-bar">
+    <select class="form-select" id="filter-month"></select>
+    <select class="form-select" id="filter-emp">
+      <option value="">全員</option>
+      <option value="木嵜 次郎">木嵜 次郎</option>
+      <option value="苫田 泰綺">苫田 泰綺</option>
+      <option value="高橋 宗孝">高橋 宗孝</option>
+      <option value="澤田 悠吾">澤田 悠吾</option>
+      <option value="小山 雅史">小山 雅史</option>
+    </select>
+  </div>
+  <div id="records-container">
+    <div class="loading">
+      <div class="spinner"></div>
+      <span>データを読み込み中...</span>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    うかのわ 勤怠管理 &copy; 2026
+  </div>
+
+</div><!-- /page -->
+
+<div id="toast"></div>
+
+<script>
+// ── 定数 ──────────────────────────────────────────────
+const WORKER = 'https://ukanowa-api.commonground-oka.workers.dev';
+const DB_ID  = '0800469ba88d4fcc899dd774326cd01a';
+
+// ── Worker API ────────────────────────────────────────
+async function queryDB(dbId, opts = {}) {
+  const res = await fetch(`${WORKER}/databases/${dbId}/query`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(opts),
+  });
+  if (!res.ok) throw new Error(`DB取得エラー: ${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+async function patchPage(pageId, properties) {
+  const res = await fetch(`${WORKER}/pages/${pageId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ properties }),
+  });
+  if (!res.ok) throw new Error(`更新エラー: ${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+async function createPage(databaseId, properties) {
+  const res = await fetch(`${WORKER}/pages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      parent: { database_id: databaseId },
+      properties,
+    }),
+  });
+  if (!res.ok) throw new Error(`作成エラー: ${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+// ── Notion プロパティ取得ヘルパー ─────────────────────
+const getTitle = (page) =>
+  page.properties['名前']?.title?.[0]?.plain_text || '';
+const getRichText = (page, key) =>
+  page.properties[key]?.rich_text?.[0]?.plain_text || '';
+const getSelect = (page, key) =>
+  page.properties[key]?.select?.name || '';
+const getNumber = (page, key) =>
+  page.properties[key]?.number ?? null;
+const getDate = (page, key) =>
+  page.properties[key]?.date?.start || '';
+
+// ── HTML エスケープ ────────────────────────────────────
+const esc = s => String(s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;');
+
+// ── トースト通知 ──────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = isError ? 'error' : '';
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 3000);
+}
+
+// ── 日時ユーティリティ ─────────────────────────────────
+function toLocalISO(dt) {
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const d = String(dt.getDate()).padStart(2, '0');
+  const h = String(dt.getHours()).padStart(2, '0');
+  const mi = String(dt.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${d}T${h}:${mi}`;
+}
+
+function toISOString(dtLocalStr) {
+  // datetime-local -> ISO 8601 with timezone offset
+  const dt = new Date(dtLocalStr);
+  return dt.toISOString();
+}
+
+function formatDate(isoStr) {
+  if (!isoStr) return '—';
+  const d = new Date(isoStr);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function formatTime(isoStr) {
+  if (!isoStr) return '—';
+  const d = new Date(isoStr);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function formatMinutes(min) {
+  if (min === null || min === undefined) return '—';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${h}:${String(m).padStart(2, '0')}`;
+}
+
+function formatYen(n) {
+  if (n === null || n === undefined) return '—';
+  return n.toLocaleString() + '円';
+}
+
+// ── 初期化：datetime-localのデフォルト値 ───────────────
+function initForm() {
+  const now = new Date();
+  document.getElementById('stamp-datetime').value = toLocalISO(now);
+  document.getElementById('header-date').textContent =
+    now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// ── 月選択プルダウン初期化 ────────────────────────────
+function initMonthFilter() {
+  const sel = document.getElementById('filter-month');
+  const now = new Date();
+  // 過去6ヶ月 + 当月
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = `${d.getFullYear()}年${d.getMonth() + 1}月`;
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = label;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', loadRecords);
+  document.getElementById('filter-emp').addEventListener('change', loadRecords);
+}
+
+// ── 打刻処理 ─────────────────────────────────────────
+async function handleStamp() {
+  const empName   = document.getElementById('emp-name').value;
+  const stampType = document.getElementById('stamp-type').value;
+  const dtValue   = document.getElementById('stamp-datetime').value;
+  const hourlyRate = parseInt(document.getElementById('hourly-rate').value);
+  const btn       = document.getElementById('btn-stamp');
+
+  if (!dtValue) {
+    showToast('日時を入力してください', true);
+    return;
+  }
+
+  const dt = new Date(dtValue);
+  const dateStr = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+  const isoTime = toISOString(dtValue);
+  const pageName = `${empName}_${dateStr}`;
+
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  try {
+    if (stampType === '出勤') {
+      // 新レコード作成
+      await createPage(DB_ID, {
+        '名前':     { title: [{ text: { content: pageName } }] },
+        '従業員名': { select: { name: empName } },
+        '日付':     { date: { start: dateStr } },
+        '出勤時刻': { date: { start: isoTime } },
+        '時給':     { number: hourlyRate },
+      });
+      showToast(`${empName} の出勤を記録しました`);
+
+    } else {
+      // 当日・同従業員のレコードを検索
+      const res = await queryDB(DB_ID, {
+        filter: {
+          and: [
+            { property: '従業員名', select: { equals: empName } },
+            { property: '日付', date: { equals: dateStr } },
+          ],
+        },
+      });
+
+      if (!res.results || res.results.length === 0) {
+        showToast(`${empName} の本日の出勤記録がありません`, true);
+        return;
+      }
+
+      const record = res.results[0];
+      const pageId = record.id;
+
+      if (stampType === '休憩開始') {
+        await patchPage(pageId, {
+          '休憩開始': { date: { start: isoTime } },
+        });
+        showToast(`${empName} の休憩開始を記録しました`);
+
+      } else if (stampType === '休憩終了') {
+        await patchPage(pageId, {
+          '休憩終了': { date: { start: isoTime } },
+        });
+        showToast(`${empName} の休憩終了を記録しました`);
+
+      } else if (stampType === '退勤') {
+        // 実働時間・日当を計算
+        const startTime = getDate(record, '出勤時刻');
+        const breakStart = getDate(record, '休憩開始');
+        const breakEnd = getDate(record, '休憩終了');
+        const recordRate = getNumber(record, '時給') || hourlyRate;
+
+        if (!startTime) {
+          showToast('出勤時刻が記録されていません', true);
+          return;
+        }
+
+        const startMs = new Date(startTime).getTime();
+        const endMs   = dt.getTime();
+        let breakMin  = 0;
+
+        if (breakStart && breakEnd) {
+          breakMin = Math.floor((new Date(breakEnd).getTime() - new Date(breakStart).getTime()) / 60000);
+        }
+
+        const totalMin = Math.floor((endMs - startMs) / 60000);
+        const workMin  = Math.max(0, totalMin - breakMin);
+        const dailyPay = Math.floor(workMin / 60 * recordRate);
+
+        await patchPage(pageId, {
+          '退勤時刻': { date: { start: isoTime } },
+          '実働分':   { number: workMin },
+          '日当':     { number: dailyPay },
+        });
+        showToast(`${empName} の退勤を記録 (実働${formatMinutes(workMin)}, ${formatYen(dailyPay)})`);
+      }
+    }
+
+    // リスト再読み込み
+    await loadRecords();
+
+  } catch (e) {
+    console.error('打刻エラー:', e);
+    showToast(`エラー: ${e.message}`, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '打刻する';
+  }
+}
+
+// ── レコード読み込み・表示 ────────────────────────────
+async function loadRecords() {
+  const container = document.getElementById('records-container');
+  const monthVal  = document.getElementById('filter-month').value;
+  const empFilter = document.getElementById('filter-emp').value;
+
+  if (!monthVal) return;
+
+  container.innerHTML = '<div class="loading"><div class="spinner"></div><span>読み込み中...</span></div>';
+
+  try {
+    // 月初・月末を計算
+    const [y, m] = monthVal.split('-').map(Number);
+    const startDate = `${y}-${String(m).padStart(2, '0')}-01`;
+    const endDate   = `${y}-${String(m).padStart(2, '0')}-${new Date(y, m, 0).getDate()}`;
+
+    // フィルタ構成
+    const filters = [
+      { property: '日付', date: { on_or_after: startDate } },
+      { property: '日付', date: { on_or_before: endDate } },
+    ];
+    if (empFilter) {
+      filters.push({ property: '従業員名', select: { equals: empFilter } });
+    }
+
+    const res = await queryDB(DB_ID, {
+      filter: { and: filters },
+      sorts: [{ property: '日付', direction: 'ascending' }],
+    });
+
+    const records = res.results || [];
+
+    if (records.length === 0) {
+      container.innerHTML = '<div class="empty-msg">該当するレコードがありません</div>';
+      return;
+    }
+
+    // 集計
+    let totalWorkMin = 0;
+    let totalPay = 0;
+
+    const rows = records.map(r => {
+      const date     = getDate(r, '日付');
+      const emp      = getSelect(r, '従業員名');
+      const clockIn  = getDate(r, '出勤時刻');
+      const clockOut = getDate(r, '退勤時刻');
+      const workMin  = getNumber(r, '実働分');
+      const pay      = getNumber(r, '日当');
+
+      if (workMin) totalWorkMin += workMin;
+      if (pay)     totalPay += pay;
+
+      return `<tr>
+        <td>${formatDate(date)}</td>
+        <td>${esc(emp)}</td>
+        <td>${formatTime(clockIn)}</td>
+        <td>${formatTime(clockOut)}</td>
+        <td>${workMin ? formatMinutes(workMin) : '—'}</td>
+        <td>${pay ? formatYen(pay) : '—'}</td>
+      </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="table-wrap">
+        <table class="kintai-table">
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>従業員名</th>
+              <th>出勤</th>
+              <th>退勤</th>
+              <th>実働</th>
+              <th>日当</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr class="total-row">
+              <td colspan="4">月合計</td>
+              <td>${formatMinutes(totalWorkMin)}</td>
+              <td>${formatYen(totalPay)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>`;
+
+  } catch (e) {
+    console.error('レコード取得エラー:', e);
+    container.innerHTML = `<div class="error-msg">データの取得に失敗しました: ${esc(e.message)}</div>`;
+  }
+}
+
+// ── 起動 ──────────────────────────────────────────────
+initForm();
+initMonthFilter();
+loadRecords();
+</script>
+</body>
+</html>
