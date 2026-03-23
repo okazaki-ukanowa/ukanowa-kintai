@@ -808,8 +808,13 @@ async function addNewDay() {
     showToast('レコードを追加しました');
     await loadStampRecords();
 
-    // 新しいレコードを自動で編集モードに
-    setTimeout(() => editRecord(newPage.id, 9), 150);
+    // 新しいレコードを自動で編集モードに（DOM描画待ち）
+    const tryEdit = () => {
+      const row = document.getElementById('row-' + newPage.id);
+      if (row) editRecord(newPage.id, 9);
+      else setTimeout(tryEdit, 100);
+    };
+    setTimeout(tryEdit, 50);
 
   } catch (e) {
     console.error('追加エラー:', e);
@@ -1113,7 +1118,13 @@ function cancelEdit(pageId) {
   const editRow = document.querySelector(`.edit-row[data-for="${pageId}"]`);
   if (editRow) editRow.remove();
   const row = document.getElementById('row-' + pageId);
-  if (row) row.style.display = '';
+  if (row) {
+    row.style.display = '';
+  } else {
+    // 行が見つからない場合（新規作成直後など）は一覧を再描画
+    if (getParam('admin') === 'true') loadAdminData();
+    else loadStampRecords();
+  }
 }
 
 async function saveEdit(pageId) {
