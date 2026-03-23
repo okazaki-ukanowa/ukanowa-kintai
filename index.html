@@ -345,22 +345,13 @@ body {
     </div>
   </div>
 
-  <!-- ════ View: 社員選択 ════ -->
+  <!-- ════ View: デフォルト（アクセス不可） ════ -->
   <div id="view-select" style="display:none;">
-    <div class="select-label">社員を選択してください</div>
-    <div class="emp-select-grid">
-      <a href="?emp=木嵜 次郎" class="emp-select-btn">木嵜 次郎</a>
-      <a href="?emp=苫田 泰綺" class="emp-select-btn">苫田 泰綺</a>
-      <a href="?emp=高橋 宗孝" class="emp-select-btn">高橋 宗孝</a>
-      <a href="?emp=澤田 悠吾" class="emp-select-btn">澤田 悠吾</a>
-      <a href="?emp=小山 雅史" class="emp-select-btn">小山 雅史</a>
-    </div>
-    <a href="?admin=true" class="admin-link">📊 管理者ダッシュボード</a>
+    <div class="empty-msg">このページは直接アクセスできません。<br>専用URLからアクセスしてください。</div>
   </div>
 
   <!-- ════ View: 社員打刻ページ ════ -->
   <div id="view-stamp" style="display:none;">
-    <a href="./" class="btn-back">← 社員選択に戻る</a>
     <div class="emp-page-name" id="stamp-emp-name"></div>
 
     <div class="form-card">
@@ -407,7 +398,6 @@ body {
 
   <!-- ════ View: 管理者ダッシュボード ════ -->
   <div id="view-admin" style="display:none;">
-    <a href="./" class="btn-back">← 社員選択に戻る</a>
     <div class="emp-page-name">管理者ダッシュボード</div>
 
     <div class="filter-bar">
@@ -443,6 +433,7 @@ body {
 const WORKER    = 'https://ukanowa-api.commonground-oka.workers.dev';
 const DB_ID     = '0800469ba88d4fcc899dd774326cd01a';
 const EMPLOYEES = ['木嵜 次郎', '苫田 泰綺', '高橋 宗孝', '澤田 悠吾', '小山 雅史'];
+const ADMIN_PIN = '1234';
 
 // ── URL パラメータ ────────────────────────────────────
 const getParam = key => new URLSearchParams(location.search).get(key);
@@ -1039,8 +1030,15 @@ function init() {
   const admin = getParam('admin');
 
   if (admin === 'true') {
-    document.getElementById('view-admin').style.display = '';
-    initAdminPage();
+    const pin = prompt('管理者PINを入力してください');
+    if (pin === ADMIN_PIN) {
+      document.getElementById('view-admin').style.display = '';
+      initAdminPage();
+    } else {
+      document.getElementById('view-select').style.display = '';
+      document.getElementById('view-select').innerHTML =
+        '<div class="empty-msg">アクセスできません。<br>正しいPINコードを入力してください。</div>';
+    }
   } else if (emp) {
     document.getElementById('view-stamp').style.display = '';
     initStampPage(emp);
