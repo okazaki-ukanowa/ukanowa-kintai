@@ -787,7 +787,7 @@ async function addNewDay() {
     await loadStampRecords();
 
     // 新しいレコードを自動で編集モードに
-    setTimeout(() => editRecord(newPage.id, 8), 150);
+    setTimeout(() => editRecord(newPage.id, 9), 150);
 
   } catch (e) {
     console.error('追加エラー:', e);
@@ -842,10 +842,11 @@ async function loadStampRecords() {
         <td>${formatBreaks(breakStart)}</td>
         <td>${formatBreaks(breakEnd)}</td>
         <td>${clockOut || '—'}</td>
+        <td>${(clockIn && clockOut) ? formatMinutes(toMin(clockOut) - toMin(clockIn)) : '—'}</td>
         <td>${workMin ? formatMinutes(workMin) : '—'}</td>
         <td>${pay ? formatYen(pay) : '—'}</td>
         <td>
-          <button class="btn-edit" onclick="editRecord('${r.id}',8)" title="修正">✏️</button>
+          <button class="btn-edit" onclick="editRecord('${r.id}',9)" title="修正">✏️</button>
           <button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button>
         </td>
       </tr>`;
@@ -855,12 +856,12 @@ async function loadStampRecords() {
       <div class="table-wrap">
         <table class="kintai-table">
           <thead><tr>
-            <th>日付</th><th>出勤</th><th>休憩開始</th><th>休憩終了</th><th>退勤</th><th>実働</th><th>日当</th><th></th>
+            <th>日付</th><th>出勤</th><th>休憩開始</th><th>休憩終了</th><th>退勤</th><th>総時間</th><th>実働</th><th>日当</th><th></th>
           </tr></thead>
           <tbody>
             ${rows}
             <tr class="total-row">
-              <td colspan="5">月合計</td>
+              <td colspan="6">月合計</td>
               <td>${formatMinutes(totalWorkMin)}</td>
               <td>${formatYen(totalPay)}</td>
               <td></td>
@@ -963,10 +964,11 @@ async function loadAdminData() {
         <td>${formatBreaks(breakStart)}</td>
         <td>${formatBreaks(breakEnd)}</td>
         <td>${clockOut || '—'}</td>
+        <td>${(clockIn && clockOut) ? formatMinutes(toMin(clockOut) - toMin(clockIn)) : '—'}</td>
         <td>${workMin ? formatMinutes(workMin) : '—'}</td>
         <td>${pay ? formatYen(pay) : '—'}</td>
         <td>
-          <button class="btn-edit" onclick="editRecord('${r.id}',9)" title="修正">✏️</button>
+          <button class="btn-edit" onclick="editRecord('${r.id}',10)" title="修正">✏️</button>
           <button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button>
         </td>
       </tr>`;
@@ -976,12 +978,12 @@ async function loadAdminData() {
       <div class="table-wrap">
         <table class="kintai-table">
           <thead><tr>
-            <th>日付</th><th>従業員</th><th>出勤</th><th>休憩開始</th><th>休憩終了</th><th>退勤</th><th>実働</th><th>日当</th><th></th>
+            <th>日付</th><th>従業員</th><th>出勤</th><th>休憩開始</th><th>休憩終了</th><th>退勤</th><th>総時間</th><th>実働</th><th>日当</th><th></th>
           </tr></thead>
           <tbody>
             ${rows}
             <tr class="total-row">
-              <td colspan="6">月合計</td>
+              <td colspan="7">月合計</td>
               <td>${formatMinutes(totalWorkMin)}</td>
               <td>${formatYen(totalPay)}</td>
               <td></td>
