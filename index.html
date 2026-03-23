@@ -227,6 +227,16 @@ body {
 .edit-field select:focus { border-color: var(--accent); }
 .edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
+/* ── Add Day Button ── */
+.btn-add-day {
+  padding: 8px 14px; font-size: 13px; font-weight: 500;
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--surface); color: var(--accent);
+  border: 1px dashed var(--accent); border-radius: var(--radius);
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.btn-add-day:hover { background: var(--green-bg); }
+
 /* ── Admin Cards ── */
 .admin-cards {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -390,6 +400,14 @@ body {
     <div class="section-heading">RECORDS — 当月の勤怠一覧</div>
     <div class="filter-bar">
       <select class="form-select" id="stamp-filter-month"></select>
+      <button class="btn-add-day" onclick="showAddDay()">＋ 日を追加</button>
+    </div>
+    <div id="add-day-form" style="display:none; margin-bottom:0.75rem;">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="date" class="form-input" id="add-day-date" style="flex:1;">
+        <button class="btn-save" onclick="addNewDay()">追加</button>
+        <button class="btn-cancel" onclick="document.getElementById('add-day-form').style.display='none'">✕</button>
+      </div>
     </div>
     <div id="stamp-records-container">
       <div class="loading"><div class="spinner"></div><span>読み込み中...</span></div>
@@ -607,89 +625,81 @@ function initStampPage(empName) {
   loadStampRecords();
 }
 
-// ── 打刻処理 ─────────────────────────────────────────
+// ── 打刻処理（レコードなければ自動作成） ──────────────
 async function handleStamp() {
-  const empName   = getParam('emp');
-  const stampType = document.getElementById('stamp-type').value;
-  const dateStr   = document.getElementById('stamp-date').value;
-  const hourVal   = document.getElementById('stamp-hour').value;
-  const minVal    = document.getElementById('stamp-min').value;
+  const empName    = getParam('emp');
+  const stampType  = document.getElementById('stamp-type').value;
+  const dateStr    = document.getElementById('stamp-date').value;
+  const hourVal    = document.getElementById('stamp-hour').value;
+  const minVal     = document.getElementById('stamp-min').value;
   const hourlyRate = parseInt(document.getElementById('hourly-rate').value);
-  const btn       = document.getElementById('btn-stamp');
+  const btn        = document.getElementById('btn-stamp');
 
   const timeStr  = `${hourVal}:${minVal}`;
   const pageName = `${empName}_${dateStr}`;
+  const FIELD_MAP = { '出勤': '出勤時刻', '休憩開始': '休憩開始', '休憩終了': '休憩終了', '退勤': '退勤時刻' };
 
   btn.disabled = true;
   btn.textContent = '送信中...';
 
   try {
-    if (stampType === '出勤') {
-      await createPage({
+    // 当日レコードを検索（複数ある場合は最新を使用）
+    const res = await queryDB(DB_ID, {
+      filter: { and: [
+        { property: '従業員名', select: { equals: empName } },
+        { property: '日付', date: { equals: dateStr } },
+      ] },
+    });
+
+    let record = res.results?.[res.results.length - 1]; // 最新
+
+    if (!record) {
+      // レコードなし → 新規作成
+      const createProps = {
         '名前':     { title: [{ text: { content: pageName } }] },
         '従業員名': { select: { name: empName } },
         '日付':     { date: { start: dateStr } },
-        '出勤時刻': { rich_text: [{ text: { content: timeStr } }] },
         '時給':     { number: hourlyRate },
-      });
-      showToast('出勤を記録しました');
-
-    } else {
-      const res = await queryDB(DB_ID, {
-        filter: { and: [
-          { property: '従業員名', select: { equals: empName } },
-          { property: '日付', date: { equals: dateStr } },
-        ] },
-      });
-
-      if (!res.results?.length) {
-        showToast('本日の出勤記録がありません', true);
-        return;
+      };
+      if (stampType === '出勤') {
+        createProps['出勤時刻'] = { rich_text: [{ text: { content: timeStr } }] };
       }
+      record = await createPage(createProps);
 
-      const record = res.results[0];
-      const pageId = record.id;
-
-      if (stampType === '休憩開始') {
-        await patchPage(pageId, {
-          '休憩開始': { rich_text: [{ text: { content: timeStr } }] },
+      // 出勤以外はさらにPATCH
+      if (stampType !== '出勤') {
+        await patchPage(record.id, {
+          [FIELD_MAP[stampType]]: { rich_text: [{ text: { content: timeStr } }] },
         });
-        showToast('休憩開始を記録しました');
+      }
+    } else {
+      // 既存レコードをPATCH
+      const patchProps = {
+        [FIELD_MAP[stampType]]: { rich_text: [{ text: { content: timeStr } }] },
+      };
 
-      } else if (stampType === '休憩終了') {
-        await patchPage(pageId, {
-          '休憩終了': { rich_text: [{ text: { content: timeStr } }] },
-        });
-        showToast('休憩終了を記録しました');
-
-      } else if (stampType === '退勤') {
-        const startTime  = getRichText(record, '出勤時刻');
+      // 退勤時は実働分・日当を再計算
+      if (stampType === '退勤') {
+        const clockIn    = getRichText(record, '出勤時刻');
         const breakStart = getRichText(record, '休憩開始');
         const breakEnd   = getRichText(record, '休憩終了');
-        const recordRate = getNumber(record, '時給') || hourlyRate;
-
-        if (!startTime) {
-          showToast('出勤時刻が未記録です', true);
-          return;
+        const rate       = getNumber(record, '時給') || hourlyRate;
+        if (clockIn) {
+          const startMin = toMin(clockIn);
+          const endMin   = toMin(timeStr);
+          let breakMin   = 0;
+          if (breakStart && breakEnd) breakMin = toMin(breakEnd) - toMin(breakStart);
+          const workMin  = Math.max(0, endMin - startMin - breakMin);
+          const dailyPay = Math.floor(workMin / 60 * rate);
+          patchProps['実働分'] = { number: workMin };
+          patchProps['日当']   = { number: dailyPay };
         }
-
-        const endMin   = toMin(timeStr);
-        const startMin = toMin(startTime);
-        let breakMinutes = 0;
-        if (breakStart && breakEnd) breakMinutes = toMin(breakEnd) - toMin(breakStart);
-
-        const workMin  = Math.max(0, endMin - startMin - breakMinutes);
-        const dailyPay = Math.floor(workMin / 60 * recordRate);
-
-        await patchPage(pageId, {
-          '退勤時刻': { rich_text: [{ text: { content: timeStr } }] },
-          '実働分':   { number: workMin },
-          '日当':     { number: dailyPay },
-        });
-        showToast(`退勤記録 (実働${formatMinutes(workMin)}, ${formatYen(dailyPay)})`);
       }
+
+      await patchPage(record.id, patchProps);
     }
 
+    showToast(`${stampType}を記録しました`);
     await loadStampRecords();
 
   } catch (e) {
@@ -698,6 +708,45 @@ async function handleStamp() {
   } finally {
     btn.disabled = false;
     btn.textContent = '打刻する';
+  }
+}
+
+// ── 新しい日を追加 ──────────────────────────────────
+function showAddDay() {
+  const form = document.getElementById('add-day-form');
+  form.style.display = '';
+  const dateInput = document.getElementById('add-day-date');
+  const now = new Date();
+  dateInput.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  dateInput.focus();
+}
+
+async function addNewDay() {
+  const empName  = getParam('emp');
+  const dateStr  = document.getElementById('add-day-date').value;
+  if (!dateStr) { showToast('日付を選択してください', true); return; }
+
+  const hourlyRate = parseInt(document.getElementById('hourly-rate').value);
+  const pageName   = `${empName}_${dateStr}`;
+
+  try {
+    const newPage = await createPage({
+      '名前':     { title: [{ text: { content: pageName } }] },
+      '従業員名': { select: { name: empName } },
+      '日付':     { date: { start: dateStr } },
+      '時給':     { number: hourlyRate },
+    });
+
+    document.getElementById('add-day-form').style.display = 'none';
+    showToast('レコードを追加しました');
+    await loadStampRecords();
+
+    // 新しいレコードを自動で編集モードに
+    setTimeout(() => editRecord(newPage.id, 6), 150);
+
+  } catch (e) {
+    console.error('追加エラー:', e);
+    showToast(`追加失敗: ${e.message}`, true);
   }
 }
 
