@@ -386,6 +386,11 @@ body {
     <div class="empty-msg">このページは直接アクセスできません。<br>専用URLからアクセスしてください。</div>
   </div>
 
+  <!-- ════ View: 認証失敗 ════ -->
+  <div id="view-denied" style="display:none;">
+    <div class="empty-msg">アクセスできません。<br>正しいPINコードを入力してください。</div>
+  </div>
+
   <!-- ════ View: 社員打刻ページ ════ -->
   <div id="view-stamp" style="display:none;">
     <div class="emp-page-name" id="stamp-emp-name"></div>
@@ -1200,9 +1205,7 @@ function init() {
       document.getElementById('view-admin').style.display = '';
       initAdminPage();
     } else {
-      document.getElementById('view-select').style.display = '';
-      document.getElementById('view-select').innerHTML =
-        '<div class="empty-msg">アクセスできません。<br>正しいPINコードを入力してください。</div>';
+      document.getElementById('view-denied').style.display = '';
     }
   } else if (emp) {
     document.getElementById('view-stamp').style.display = '';
