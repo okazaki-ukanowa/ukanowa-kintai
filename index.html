@@ -595,6 +595,32 @@ function initMonthSelect(selectId, onChange) {
   sel.addEventListener('change', onChange);
 }
 
+// ── 日付プルダウン生成 ──────────────────────────────
+function generateDateOptions(year, month) {
+  const dateSel = document.getElementById('stamp-date');
+  const prevVal = dateSel.value;
+  dateSel.innerHTML = '';
+  const days = new Date(year, month, 0).getDate(); // month is 1-based here
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const dayNames = ['日','月','火','水','木','金','土'];
+  for (let day = 1; day <= days; day++) {
+    const d = new Date(year, month - 1, day);
+    const val = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const label = `${month}/${day}(${dayNames[d.getDay()]})`;
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = label;
+    dateSel.appendChild(opt);
+  }
+  // 前回の値を維持、なければ今日、今日がなければ1日
+  if (prevVal && dateSel.querySelector(`option[value="${prevVal}"]`)) {
+    dateSel.value = prevVal;
+  } else if (dateSel.querySelector(`option[value="${todayStr}"]`)) {
+    dateSel.value = todayStr;
+  }
+}
+
 // ── レコード削除 ──────────────────────────────────────
 async function deleteRecord(pageId) {
   if (!confirm('この打刻記録を削除しますか？')) return;
@@ -623,19 +649,8 @@ function initStampPage(empName) {
 
   const now = new Date();
 
-  // 日付プルダウン：過去7日〜翌日
-  const dateSel = document.getElementById('stamp-date');
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  for (let i = -7; i <= 1; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
-    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const label = `${d.getMonth() + 1}/${d.getDate()}(${['日','月','火','水','木','金','土'][d.getDay()]})`;
-    const opt = document.createElement('option');
-    opt.value = val;
-    opt.textContent = label;
-    if (val === todayStr) opt.selected = true;
-    dateSel.appendChild(opt);
-  }
+  // 日付プルダウン：当月の全日を生成
+  generateDateOptions(now.getFullYear(), now.getMonth() + 1);
 
   // 時プルダウン
   const hourSel = document.getElementById('stamp-hour');
@@ -659,7 +674,14 @@ function initStampPage(empName) {
     minSel.appendChild(opt);
   }
 
-  initMonthSelect('stamp-filter-month', loadStampRecords);
+  initMonthSelect('stamp-filter-month', () => {
+    const mv = document.getElementById('stamp-filter-month').value;
+    if (mv) {
+      const [sy, sm] = mv.split('-').map(Number);
+      generateDateOptions(sy, sm);
+    }
+    loadStampRecords();
+  });
   loadStampRecords();
 }
 
