@@ -209,7 +209,7 @@ body {
 /* ── Edit Row ── */
 .edit-row td { background: var(--blue-bg); padding: 12px !important; }
 .edit-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
   margin-bottom: 10px;
 }
 .edit-field { display: flex; flex-direction: column; gap: 3px; }
@@ -226,6 +226,32 @@ body {
 .edit-field input[type="time"]:focus,
 .edit-field select:focus { border-color: var(--accent); }
 .edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── Break Pairs ── */
+.edit-breaks-section { margin-bottom: 10px; }
+.edit-breaks-label { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 6px; }
+.break-pair {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+}
+.break-pair input[type="time"] {
+  padding: 6px 8px; font-size: 13px; font-family: 'DM Mono', monospace;
+  border: 1px solid var(--blue-border); border-radius: var(--radius);
+  background: var(--surface); color: var(--text); outline: none; flex: 1;
+}
+.break-pair input[type="time"]:focus { border-color: var(--accent); }
+.break-pair-sep { font-size: 12px; color: var(--text3); flex-shrink: 0; }
+.btn-remove-break {
+  background: none; border: none; cursor: pointer; font-size: 14px;
+  color: var(--red-text); opacity: 0.5; transition: opacity 0.15s; flex-shrink: 0; padding: 2px 4px;
+}
+.btn-remove-break:hover { opacity: 1; }
+.btn-add-break {
+  font-size: 12px; color: var(--blue-text); background: none;
+  border: 1px dashed var(--blue-border); border-radius: var(--radius);
+  padding: 4px 10px; cursor: pointer; transition: all 0.15s;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.btn-add-break:hover { background: var(--blue-bg); }
 
 /* ── Add Day Button ── */
 .btn-add-day {
@@ -530,6 +556,18 @@ function formatYen(n) {
   return n.toLocaleString() + '円';
 }
 
+const formatBreaks = s => s ? s.split(',').join(' / ') : '—';
+
+function calcTotalBreakMin(breakStartStr, breakEndStr) {
+  const bsArr = breakStartStr ? breakStartStr.split(',') : [];
+  const beArr = breakEndStr ? breakEndStr.split(',') : [];
+  let total = 0;
+  for (let i = 0; i < Math.min(bsArr.length, beArr.length); i++) {
+    if (bsArr[i] && beArr[i]) total += toMin(beArr[i]) - toMin(bsArr[i]);
+  }
+  return total;
+}
+
 // ── トースト通知 ──────────────────────────────────────
 function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
@@ -674,23 +712,30 @@ async function handleStamp() {
       }
     } else {
       // 既存レコードをPATCH
-      const patchProps = {
-        [FIELD_MAP[stampType]]: { rich_text: [{ text: { content: timeStr } }] },
-      };
+      const patchProps = {};
 
-      // 退勤時は実働分・日当を再計算
+      // 休憩開始・終了は追記モード
+      if (stampType === '休憩開始' || stampType === '休憩終了') {
+        const field = FIELD_MAP[stampType];
+        const existing = getRichText(record, field);
+        const newVal = existing ? `${existing},${timeStr}` : timeStr;
+        patchProps[field] = { rich_text: [{ text: { content: newVal } }] };
+      } else {
+        patchProps[FIELD_MAP[stampType]] = { rich_text: [{ text: { content: timeStr } }] };
+      }
+
+      // 退勤時は実働分・日当を再計算（複数休憩対応）
       if (stampType === '退勤') {
         const clockIn    = getRichText(record, '出勤時刻');
         const breakStart = getRichText(record, '休憩開始');
         const breakEnd   = getRichText(record, '休憩終了');
         const rate       = getNumber(record, '時給') || hourlyRate;
         if (clockIn) {
-          const startMin = toMin(clockIn);
-          const endMin   = toMin(timeStr);
-          let breakMin   = 0;
-          if (breakStart && breakEnd) breakMin = toMin(breakEnd) - toMin(breakStart);
-          const workMin  = Math.max(0, endMin - startMin - breakMin);
-          const dailyPay = Math.floor(workMin / 60 * rate);
+          const startMin     = toMin(clockIn);
+          const endMin       = toMin(timeStr);
+          const totalBreak   = calcTotalBreakMin(breakStart, breakEnd);
+          const workMin      = Math.max(0, endMin - startMin - totalBreak);
+          const dailyPay     = Math.floor(workMin / 60 * rate);
           patchProps['実働分'] = { number: workMin };
           patchProps['日当']   = { number: dailyPay };
         }
@@ -794,8 +839,8 @@ async function loadStampRecords() {
       return `<tr id="row-${r.id}" data-clockin="${esc(clockIn)}" data-clockout="${esc(clockOut)}" data-breakstart="${esc(breakStart)}" data-breakend="${esc(breakEnd)}" data-rate="${rate || 1200}">
         <td>${formatDate(date)}</td>
         <td>${clockIn || '—'}</td>
-        <td>${breakStart || '—'}</td>
-        <td>${breakEnd || '—'}</td>
+        <td>${formatBreaks(breakStart)}</td>
+        <td>${formatBreaks(breakEnd)}</td>
         <td>${clockOut || '—'}</td>
         <td>${workMin ? formatMinutes(workMin) : '—'}</td>
         <td>${pay ? formatYen(pay) : '—'}</td>
@@ -915,11 +960,13 @@ async function loadAdminData() {
         <td>${formatDate(date)}</td>
         <td class="td-emp">${esc(emp)}</td>
         <td>${clockIn || '—'}</td>
+        <td>${formatBreaks(breakStart)}</td>
+        <td>${formatBreaks(breakEnd)}</td>
         <td>${clockOut || '—'}</td>
         <td>${workMin ? formatMinutes(workMin) : '—'}</td>
         <td>${pay ? formatYen(pay) : '—'}</td>
         <td>
-          <button class="btn-edit" onclick="editRecord('${r.id}',7)" title="修正">✏️</button>
+          <button class="btn-edit" onclick="editRecord('${r.id}',9)" title="修正">✏️</button>
           <button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button>
         </td>
       </tr>`;
@@ -929,12 +976,12 @@ async function loadAdminData() {
       <div class="table-wrap">
         <table class="kintai-table">
           <thead><tr>
-            <th>日付</th><th>従業員</th><th>出勤</th><th>退勤</th><th>実働</th><th>日当</th><th></th>
+            <th>日付</th><th>従業員</th><th>出勤</th><th>休憩開始</th><th>休憩終了</th><th>退勤</th><th>実働</th><th>日当</th><th></th>
           </tr></thead>
           <tbody>
             ${rows}
             <tr class="total-row">
-              <td colspan="4">月合計</td>
+              <td colspan="6">月合計</td>
               <td>${formatMinutes(totalWorkMin)}</td>
               <td>${formatYen(totalPay)}</td>
               <td></td>
@@ -972,6 +1019,21 @@ function editRecord(pageId, colspan) {
   const breakEnd   = row.dataset.breakend || '';
   const rate       = row.dataset.rate || '1200';
 
+  // 休憩ペアのHTML生成
+  const bsArr = breakStart ? breakStart.split(',') : [''];
+  const beArr = breakEnd   ? breakEnd.split(',')   : [''];
+  const maxBreaks = Math.max(bsArr.length, beArr.length, 1);
+  let breakPairsHtml = '';
+  for (let i = 0; i < maxBreaks; i++) {
+    breakPairsHtml += `
+      <div class="break-pair">
+        <input type="time" class="break-start" value="${bsArr[i] || ''}">
+        <span class="break-pair-sep">〜</span>
+        <input type="time" class="break-end" value="${beArr[i] || ''}">
+        <button class="btn-remove-break" onclick="this.closest('.break-pair').remove()" title="削除">✕</button>
+      </div>`;
+  }
+
   row.style.display = 'none';
 
   const editTr = document.createElement('tr');
@@ -986,14 +1048,6 @@ function editRecord(pageId, colspan) {
             <input type="time" id="edit-in-${pageId}" value="${esc(clockIn)}">
           </div>
           <div class="edit-field">
-            <label>休憩開始</label>
-            <input type="time" id="edit-bs-${pageId}" value="${esc(breakStart)}">
-          </div>
-          <div class="edit-field">
-            <label>休憩終了</label>
-            <input type="time" id="edit-be-${pageId}" value="${esc(breakEnd)}">
-          </div>
-          <div class="edit-field">
             <label>退勤</label>
             <input type="time" id="edit-out-${pageId}" value="${esc(clockOut)}">
           </div>
@@ -1005,6 +1059,11 @@ function editRecord(pageId, colspan) {
             </select>
           </div>
         </div>
+        <div class="edit-breaks-section">
+          <div class="edit-breaks-label">休憩</div>
+          <div id="edit-breaks-${pageId}">${breakPairsHtml}</div>
+          <button class="btn-add-break" onclick="addBreakPair('${pageId}')">＋ 休憩を追加</button>
+        </div>
         <div class="edit-actions">
           <button class="btn-cancel" onclick="cancelEdit('${pageId}')">✕ キャンセル</button>
           <button class="btn-save" onclick="saveEdit('${pageId}')">💾 保存</button>
@@ -1012,6 +1071,18 @@ function editRecord(pageId, colspan) {
       </div>
     </td>`;
   row.parentNode.insertBefore(editTr, row.nextSibling);
+}
+
+function addBreakPair(pageId) {
+  const container = document.getElementById(`edit-breaks-${pageId}`);
+  const div = document.createElement('div');
+  div.className = 'break-pair';
+  div.innerHTML = `
+    <input type="time" class="break-start" value="">
+    <span class="break-pair-sep">〜</span>
+    <input type="time" class="break-end" value="">
+    <button class="btn-remove-break" onclick="this.closest('.break-pair').remove()" title="削除">✕</button>`;
+  container.appendChild(div);
 }
 
 function cancelEdit(pageId) {
@@ -1022,11 +1093,20 @@ function cancelEdit(pageId) {
 }
 
 async function saveEdit(pageId) {
-  const clockIn    = document.getElementById(`edit-in-${pageId}`).value;
-  const breakStart = document.getElementById(`edit-bs-${pageId}`).value;
-  const breakEnd   = document.getElementById(`edit-be-${pageId}`).value;
-  const clockOut   = document.getElementById(`edit-out-${pageId}`).value;
-  const rate       = parseInt(document.getElementById(`edit-rate-${pageId}`).value);
+  const clockIn  = document.getElementById(`edit-in-${pageId}`).value;
+  const clockOut = document.getElementById(`edit-out-${pageId}`).value;
+  const rate     = parseInt(document.getElementById(`edit-rate-${pageId}`).value);
+
+  // 休憩ペアを収集
+  const breakPairs = document.querySelectorAll(`#edit-breaks-${pageId} .break-pair`);
+  const bsArr = [], beArr = [];
+  breakPairs.forEach(pair => {
+    const s = pair.querySelector('.break-start').value;
+    const e = pair.querySelector('.break-end').value;
+    if (s || e) { bsArr.push(s || ''); beArr.push(e || ''); }
+  });
+  const breakStart = bsArr.join(',');
+  const breakEnd   = beArr.join(',');
 
   const saveBtn = document.querySelector(`.edit-row[data-for="${pageId}"] .btn-save`);
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '保存中...'; }
@@ -1040,12 +1120,11 @@ async function saveEdit(pageId) {
       '時給':     { number: rate },
     };
 
-    // 実働分・日当を再計算
+    // 実働分・日当を再計算（複数休憩対応）
     if (clockIn && clockOut) {
-      const startMin = toMin(clockIn);
-      const endMin   = toMin(clockOut);
-      let breakMinutes = 0;
-      if (breakStart && breakEnd) breakMinutes = toMin(breakEnd) - toMin(breakStart);
+      const startMin     = toMin(clockIn);
+      const endMin       = toMin(clockOut);
+      const breakMinutes = calcTotalBreakMin(breakStart, breakEnd);
       const workMin  = Math.max(0, endMin - startMin - breakMinutes);
       const dailyPay = Math.floor(workMin / 60 * rate);
       props['実働分'] = { number: workMin };
