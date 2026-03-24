@@ -487,8 +487,7 @@ const ADMIN_PIN = '1234';
 // ── URL パラメータ ────────────────────────────────────
 const getParam = key => {
   const val = new URLSearchParams(location.search).get(key);
-  if (val === null) return null;
-  try { return decodeURIComponent(val); } catch { return val; }
+  return val === null ? null : safeDecode(val);
 };
 
 // ── Worker API ────────────────────────────────────────
@@ -531,14 +530,15 @@ async function createPage(properties) {
   return res.json();
 }
 
+// ── ユーティリティ ───────────────────────────────────
+const safeDecode = s => { try { return decodeURIComponent(s); } catch { return s; } };
+
 // ── Notion プロパティ取得ヘルパー ─────────────────────
-const getTitle    = page => page.properties['名前']?.title?.[0]?.plain_text || '';
+const getTitle    = page => { const v = page.properties['名前']?.title?.[0]?.plain_text || ''; return safeDecode(v); };
 const getRichText = (page, key) => page.properties[key]?.rich_text?.[0]?.plain_text || '';
-const getSelect   = (page, key) => page.properties[key]?.select?.name || '';
+const getSelect   = (page, key) => { const v = page.properties[key]?.select?.name || ''; return safeDecode(v); };
 const getNumber   = (page, key) => page.properties[key]?.number ?? null;
 const getDateProp = (page, key) => page.properties[key]?.date?.start || '';
-
-// ── ユーティリティ ───────────────────────────────────
 const esc = s => String(s)
   .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
