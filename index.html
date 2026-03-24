@@ -860,7 +860,7 @@ async function loadStampRecords() {
       return;
     }
 
-    let totalWorkMin = 0, totalPay = 0;
+    let totalWorkMin = 0, totalBreakMin = 0, totalPay = 0;
     const rows = records.map(r => {
       const date       = getDateProp(r, '日付');
       const clockIn    = getRichText(r, '出勤時刻');
@@ -870,7 +870,9 @@ async function loadStampRecords() {
       const rate       = getNumber(r, '時給');
       const workMin    = getNumber(r, '実働分');
       const pay        = getNumber(r, '日当');
+      const brkMin     = calcTotalBreakMin(breakStart, breakEnd);
       if (workMin) totalWorkMin += workMin;
+      totalBreakMin += brkMin;
       if (pay)     totalPay += pay;
       return `<tr id="row-${r.id}" data-clockin="${esc(clockIn)}" data-clockout="${esc(clockOut)}" data-breakstart="${esc(breakStart)}" data-breakend="${esc(breakEnd)}" data-rate="${rate || 1200}">
         <td>${formatDate(date)}</td>
@@ -879,10 +881,11 @@ async function loadStampRecords() {
         <td>${formatBreaks(breakEnd)}</td>
         <td>${clockOut || '—'}</td>
         <td>${(clockIn && clockOut) ? formatMinutes(toMin(clockOut) - toMin(clockIn)) : '—'}</td>
+        <td>${brkMin ? formatMinutes(brkMin) : '—'}</td>
         <td>${workMin ? formatMinutes(workMin) : '—'}</td>
         <td>${pay ? formatYen(pay) : '—'}</td>
         <td>
-          <button class="btn-edit" onclick="editRecord('${r.id}',9)" title="修正">✏️</button>
+          <button class="btn-edit" onclick="editRecord('${r.id}',10)" title="修正">✏️</button>
           <button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button>
         </td>
       </tr>`;
@@ -892,12 +895,13 @@ async function loadStampRecords() {
       <div class="table-wrap">
         <table class="kintai-table">
           <thead><tr>
-            <th>日付</th><th>出勤</th><th>休憩開始</th><th>休憩終了</th><th>退勤</th><th>総時間</th><th>実働</th><th>日当</th><th></th>
+            <th>日付</th><th>出勤</th><th>休憩開始</th><th>休憩終了</th><th>退勤</th><th>総時間</th><th>休憩計</th><th>実働</th><th>日当</th><th></th>
           </tr></thead>
           <tbody>
             ${rows}
             <tr class="total-row">
               <td colspan="6">月合計</td>
+              <td>${formatMinutes(totalBreakMin)}</td>
               <td>${formatMinutes(totalWorkMin)}</td>
               <td>${formatYen(totalPay)}</td>
               <td></td>
@@ -980,7 +984,7 @@ async function loadAdminData() {
       return;
     }
 
-    let totalWorkMin = 0, totalPay = 0;
+    let totalWorkMin = 0, totalBreakMin = 0, totalPay = 0;
     const rows = records.map(r => {
       const date       = getDateProp(r, '日付');
       const emp        = getSelect(r, '従業員名');
@@ -991,7 +995,9 @@ async function loadAdminData() {
       const rate       = getNumber(r, '時給');
       const workMin    = getNumber(r, '実働分');
       const pay        = getNumber(r, '日当');
+      const brkMin     = calcTotalBreakMin(breakStart, breakEnd);
       if (workMin) totalWorkMin += workMin;
+      totalBreakMin += brkMin;
       if (pay)     totalPay += pay;
       return `<tr id="row-${r.id}" data-clockin="${esc(clockIn)}" data-clockout="${esc(clockOut)}" data-breakstart="${esc(breakStart)}" data-breakend="${esc(breakEnd)}" data-rate="${rate || 1200}">
         <td>${formatDate(date)}</td>
@@ -1001,10 +1007,11 @@ async function loadAdminData() {
         <td>${formatBreaks(breakEnd)}</td>
         <td>${clockOut || '—'}</td>
         <td>${(clockIn && clockOut) ? formatMinutes(toMin(clockOut) - toMin(clockIn)) : '—'}</td>
+        <td>${brkMin ? formatMinutes(brkMin) : '—'}</td>
         <td>${workMin ? formatMinutes(workMin) : '—'}</td>
         <td>${pay ? formatYen(pay) : '—'}</td>
         <td>
-          <button class="btn-edit" onclick="editRecord('${r.id}',10)" title="修正">✏️</button>
+          <button class="btn-edit" onclick="editRecord('${r.id}',11)" title="修正">✏️</button>
           <button class="btn-delete" onclick="deleteRecord('${r.id}')" title="削除">🗑️</button>
         </td>
       </tr>`;
@@ -1014,12 +1021,13 @@ async function loadAdminData() {
       <div class="table-wrap">
         <table class="kintai-table">
           <thead><tr>
-            <th>日付</th><th>従業員</th><th>出勤</th><th>休憩開始</th><th>休憩終了</th><th>退勤</th><th>総時間</th><th>実働</th><th>日当</th><th></th>
+            <th>日付</th><th>従業員</th><th>出勤</th><th>休憩開始</th><th>休憩終了</th><th>退勤</th><th>総時間</th><th>休憩計</th><th>実働</th><th>日当</th><th></th>
           </tr></thead>
           <tbody>
             ${rows}
             <tr class="total-row">
               <td colspan="7">月合計</td>
+              <td>${formatMinutes(totalBreakMin)}</td>
               <td>${formatMinutes(totalWorkMin)}</td>
               <td>${formatYen(totalPay)}</td>
               <td></td>
